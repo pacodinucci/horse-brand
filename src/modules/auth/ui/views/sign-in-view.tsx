@@ -97,7 +97,7 @@ export const SignInView = () => {
             >
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col items-center text-center">
-                  <h1 className="text-2xl font-bold">Bienvenido</h1>
+                  <h1 className="text-2xl font-bold">Horse Brand Backoffice</h1>
                   <p className="text-muted-foreground text-balance">
                     Inicia sesión con tu cuenta
                   </p>
@@ -176,9 +176,9 @@ export const SignInView = () => {
               </div>
             </form>
           </Form>
-          <div className="bg-radial from-primary/60 to-primary relative hidden md:flex flex-col gap-y-4 items-center justify-center">
+          <div className="bg-radial from-primary/10 to-neutral-300 relative hidden md:flex flex-col gap-y-4 items-center justify-center">
             <img src="/logo.png" alt="Image" className="h-[92px] w-[92x]" />
-            <p className="text-2xl font-semibold text-white">Horse Brand</p>
+            {/* <p className="text-2xl font-semibold text-white">Horse Brand</p> */}
           </div>
         </CardContent>
       </Card>

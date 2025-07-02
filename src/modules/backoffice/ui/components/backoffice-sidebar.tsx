@@ -66,9 +66,12 @@ export const BackofficeSidebar = () => {
   return (
     <Sidebar>
       <SidebarHeader className="text-sidebar-accent-foreground">
-        <Link href="/" className="flex items-center gap-2 px-2 pt-2">
-          <Image src="/logo.png" height={36} width={36} alt="Horse Brand" />
-          <p className="text-2xl font-semibold">Horse Brand</p>
+        <Link
+          href="/"
+          className="flex items-center justify-center gap-2 px-2 pt-2"
+        >
+          <Image src="/logo.png" height={60} width={60} alt="Horse Brand" />
+          {/* <p className="text-2xl font-semibold">Horse Brand</p> */}
         </Link>
       </SidebarHeader>
       <div className="px-4 py-2">
