@@ -1,9 +1,9 @@
-import { ProductsListHeader } from "@/modules/products/ui/products-list-header";
+import { ProductsListHeader } from "@/modules/products/ui/components/products-list-header";
 import {
   ProductsView,
   ProductsViewError,
   ProductsViewLoading,
-} from "@/modules/products/views/products-view";
+} from "@/modules/products/ui/views/products-view";
 import { getQueryClient, trpc } from "@/trpc/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ErrorBoundary } from "next/dist/client/components/error-boundary";

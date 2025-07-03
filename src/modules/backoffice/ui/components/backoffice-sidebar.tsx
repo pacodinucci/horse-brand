@@ -71,17 +71,22 @@ export const BackofficeSidebar = () => {
 
   return (
     <Sidebar>
-      <SidebarHeader className="text-sidebar-accent-foreground">
+      <SidebarHeader className="text-sidebar-accent-foreground h-25">
         <Link
           href="/"
           className="flex items-center justify-center gap-2 px-2 pt-2"
         >
-          <Image src="/logo.png" height={60} width={60} alt="Horse Brand" />
+          <Image
+            src="/logos/HB lite positivo.svg"
+            height={200}
+            width={100}
+            alt="Horse Brand"
+          />
           {/* <p className="text-2xl font-semibold">Horse Brand</p> */}
         </Link>
       </SidebarHeader>
       <div className="px-4 py-2">
-        <Separator className="opacity-10 text-[#5D6B68]" />
+        <Separator className="opacity-50 text-[#5D6B68]" />
       </div>
       <SidebarContent>
         <SidebarGroup>

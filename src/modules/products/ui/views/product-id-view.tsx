@@ -2,7 +2,8 @@
 
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { ProductForm } from "../ui/product-form";
+// import { ProductForm } from "../ui/product-form";
+import { ProductForm } from "../components/product-form";
 
 interface ProductIdViewProps {
   productId?: string;

@@ -5,8 +5,8 @@ import { ErrorState } from "@/components/error-state";
 import { LoadingState } from "@/components/loading-state";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { columns } from "../ui/columns";
-import { DataPagination } from "@/components/data-pagination";
+import { columns } from "../components/columns";
+// import { DataPagination } from "@/components/data-pagination";
 
 export const ProductsView = () => {
   const trpc = useTRPC();

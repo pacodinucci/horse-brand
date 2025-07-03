@@ -7,5 +7,5 @@ export const productsInsertSchema = z.object({
 });
 
 export const productsUpdateSchema = productsInsertSchema.extend({
-  id: z.string().min(1, { message: "Id es requerido." }),
+  id: z.string(),
 });

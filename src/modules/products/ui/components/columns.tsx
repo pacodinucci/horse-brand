@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ProductsGetOne } from "../types";
+import { ProductsGetOne } from "../../types";
 import { format } from "date-fns";
 
 export const columns: ColumnDef<ProductsGetOne>[] = [

@@ -1,9 +1,9 @@
-import { ProductForm } from "@/modules/products/ui/product-form";
-import { ProductIdView } from "@/modules/products/views/product-id-view";
+import { ProductForm } from "@/modules/products/ui/components/product-form";
+import { ProductIdView } from "@/modules/products/ui/views/product-id-view";
 import {
   ProductsViewError,
   ProductsViewLoading,
-} from "@/modules/products/views/products-view";
+} from "@/modules/products/ui/views/products-view";
 import { getQueryClient, trpc } from "@/trpc/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ErrorBoundary } from "next/dist/client/components/error-boundary";

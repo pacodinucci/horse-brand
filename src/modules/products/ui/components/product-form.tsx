@@ -1,13 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-
 import { useTRPC } from "@/trpc/client";
-import { productsInsertSchema, productsUpdateSchema } from "../schemas";
+import { productsInsertSchema, productsUpdateSchema } from "../../schemas";
 import {
   Form,
   FormControl,
@@ -35,6 +35,7 @@ export const ProductForm = ({
   onCancel,
   initialValues,
 }: ProductFormProps) => {
+  const router = useRouter();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -44,6 +45,7 @@ export const ProductForm = ({
         await queryClient.invalidateQueries(
           trpc.products.getMany.queryOptions({})
         );
+        router.push("/backoffice/products");
         onSuccess?.();
       },
       onError: (error) => {
@@ -63,6 +65,7 @@ export const ProductForm = ({
             trpc.products.getOne.queryOptions({ id: initialValues.id })
           );
         }
+        router.push("/backoffice/products");
         onSuccess?.();
       },
       onError: (error) => {
@@ -76,7 +79,7 @@ export const ProductForm = ({
   const form = useForm<
     z.infer<typeof productsInsertSchema | typeof productsUpdateSchema>
   >({
-    resolver: zodResolver(isEdit ? productsUpdateSchema : productsInsertSchema),
+    resolver: zodResolver(productsInsertSchema),
     defaultValues: {
       name: initialValues?.name ?? "",
       category: initialValues?.category ?? "",
@@ -90,18 +93,22 @@ export const ProductForm = ({
     values: z.infer<typeof productsInsertSchema | typeof productsUpdateSchema>
   ) => {
     if (isEdit && initialValues?.id) {
-      console.log(values);
-
       updateProduct.mutate({ ...values, id: initialValues.id });
     } else {
-      console.log(values);
       createProduct.mutate(values);
     }
   };
 
+  console.log("Renderizando ProductForm", { initialValues, isEdit });
+
   return (
     <Form {...form}>
-      <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="space-y-4"
+        onSubmit={form.handleSubmit(onSubmit, (err) =>
+          console.log("ERRORES", err)
+        )}
+      >
         <FormField
           name="name"
           control={form.control}
