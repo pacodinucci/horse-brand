@@ -12,6 +12,18 @@ import { TRPCError } from "@trpc/server";
 import { productsInsertSchema, productsUpdateSchema } from "../schemas";
 
 export const productsRouter = createTRPCRouter({
+  create: protectedProcedure
+    .input(productsInsertSchema)
+    .mutation(async ({ input }) => {
+      const createdProduct = await db.product.create({
+        data: {
+          name: input.name,
+          category: input.category,
+          subCategory: input.subCategory,
+        },
+      });
+      return createdProduct;
+    }),
   getMany: protectedProcedure
     .input(
       z.object({
@@ -58,7 +70,7 @@ export const productsRouter = createTRPCRouter({
   getOne: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
-      console.log("Buscando producto con id:", input.id);
+      console.log("GETONE called");
       const product = await db.product.findFirst({
         where: { id: input.id },
       });
@@ -74,18 +86,7 @@ export const productsRouter = createTRPCRouter({
 
       return product;
     }),
-  create: protectedProcedure
-    .input(productsInsertSchema)
-    .mutation(async ({ input }) => {
-      const createdProduct = await db.product.create({
-        data: {
-          name: input.name,
-          category: input.category,
-          subCategory: input.subCategory,
-        },
-      });
-      return createdProduct;
-    }),
+
   update: protectedProcedure
     .input(productsUpdateSchema)
     .mutation(async ({ input }) => {

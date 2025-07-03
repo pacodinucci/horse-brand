@@ -90,9 +90,12 @@ export const ProductForm = ({
     values: z.infer<typeof productsInsertSchema | typeof productsUpdateSchema>
   ) => {
     if (isEdit && initialValues?.id) {
+      console.log(values);
+
       updateProduct.mutate({ ...values, id: initialValues.id });
     } else {
-      createProduct.mutate(values as z.infer<typeof productsInsertSchema>);
+      console.log(values);
+      createProduct.mutate(values);
     }
   };
 
