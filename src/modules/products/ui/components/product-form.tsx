@@ -3,7 +3,11 @@
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
@@ -18,6 +22,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CategoryGetOne } from "@/modules/category/types";
+import { SubcategoryGetOne } from "@/modules/subcategory/types";
 
 export interface ProductFormProps {
   onSuccess?: () => void;
@@ -25,8 +38,8 @@ export interface ProductFormProps {
   initialValues?: {
     id?: string;
     name: string;
-    category: string;
-    subCategory: string;
+    categoryId: string;
+    subCategoryId: string;
   };
 }
 
@@ -38,6 +51,14 @@ export const ProductForm = ({
   const router = useRouter();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+
+  // Consulta categorías y subcategorías
+  const { data: categories } = useSuspenseQuery(
+    trpc.category.getMany.queryOptions({})
+  );
+  const { data: subcategories } = useSuspenseQuery(
+    trpc.subcategory.getMany.queryOptions({})
+  );
 
   const createProduct = useMutation(
     trpc.products.create.mutationOptions({
@@ -82,8 +103,8 @@ export const ProductForm = ({
     resolver: zodResolver(productsInsertSchema),
     defaultValues: {
       name: initialValues?.name ?? "",
-      category: initialValues?.category ?? "",
-      subCategory: initialValues?.subCategory ?? "",
+      categoryId: initialValues?.categoryId ?? "",
+      subCategoryId: initialValues?.subCategoryId ?? "",
     },
   });
 
@@ -99,12 +120,17 @@ export const ProductForm = ({
     }
   };
 
-  console.log("Renderizando ProductForm", { initialValues, isEdit });
+  const categoryId = form.watch("categoryId");
+
+  const filteredSubcategories =
+    subcategories?.items?.filter(
+      (sub: SubcategoryGetOne) => sub.categoryId === categoryId
+    ) ?? [];
 
   return (
     <Form {...form}>
       <form
-        className="space-y-4"
+        className="space-y-4 py-4 max-w-3xl"
         onSubmit={form.handleSubmit(onSubmit, (err) =>
           console.log("ERRORES", err)
         )}
@@ -116,33 +142,67 @@ export const ProductForm = ({
             <FormItem>
               <FormLabel>Nombre</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Nombre del producto" />
+                <Input
+                  {...field}
+                  placeholder="Nombre del producto"
+                  className="bg-white"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <FormField
-          name="category"
+          name="categoryId"
           control={form.control}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Categoría</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Categoría" />
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isPending}
+                >
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="Seleccionar categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories?.items?.map((cat: CategoryGetOne) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <FormField
-          name="subCategory"
+          name="subCategoryId"
           control={form.control}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Subcategoría</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Subcategoría" />
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isPending || !categoryId}
+                >
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="Seleccionar subcategoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredSubcategories.map((sub: SubcategoryGetOne) => (
+                      <SelectItem key={sub.id} value={sub.id}>
+                        {sub.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>

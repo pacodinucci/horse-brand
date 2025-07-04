@@ -25,7 +25,7 @@ export interface ProductFormProps {
   initialValues?: {
     id?: string;
     name: string;
-    location: string;
+    location: string | null;
   };
 }
 

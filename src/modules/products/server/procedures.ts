@@ -18,8 +18,8 @@ export const productsRouter = createTRPCRouter({
       const createdProduct = await db.product.create({
         data: {
           name: input.name,
-          category: input.category,
-          subCategory: input.subCategory,
+          categoryId: input.categoryId,
+          subCategoryId: input.subCategoryId,
         },
       });
       return createdProduct;
@@ -44,7 +44,7 @@ export const productsRouter = createTRPCRouter({
         ? {
             name: {
               contains: search,
-              mode: Prisma.QueryMode.insensitive, // <--- ESTA ES LA CLAVE
+              mode: Prisma.QueryMode.insensitive,
             },
           }
         : {};
@@ -56,6 +56,10 @@ export const productsRouter = createTRPCRouter({
           orderBy: [{ createdAt: "desc" }, { id: "desc" }],
           skip: (page - 1) * pageSize,
           take: pageSize,
+          include: {
+            category: true,
+            subCategory: true,
+          },
         }),
         db.product.count({ where }),
       ]);
@@ -70,12 +74,13 @@ export const productsRouter = createTRPCRouter({
   getOne: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
-      console.log("GETONE called");
       const product = await db.product.findFirst({
         where: { id: input.id },
+        include: {
+          category: true,
+          subCategory: true,
+        },
       });
-
-      console.log("Resultado:", product);
 
       if (!product) {
         throw new TRPCError({
@@ -94,8 +99,8 @@ export const productsRouter = createTRPCRouter({
         where: { id: input.id },
         data: {
           name: input.name,
-          category: input.category,
-          subCategory: input.subCategory,
+          categoryId: input.categoryId,
+          subCategoryId: input.subCategoryId,
         },
       });
 

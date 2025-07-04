@@ -2,8 +2,8 @@
 
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-// import { ProductForm } from "../ui/product-form";
 import { ProductForm } from "../components/product-form";
+import { ProdcutIdViewHeader } from "../components/product-id-view-header";
 
 interface ProductIdViewProps {
   productId?: string;
@@ -12,16 +12,13 @@ interface ProductIdViewProps {
 export const ProductIdView = ({ productId }: ProductIdViewProps) => {
   const trpc = useTRPC();
 
-  const { data, error } = useSuspenseQuery(
+  const { data } = useSuspenseQuery(
     trpc.products.getOne.queryOptions({ id: productId || "__NO_ID__" })
   );
 
-  if (!productId || error?.data?.code === "NOT_FOUND" || data == null) {
-    return <ProductForm />;
-  }
-
   return (
-    <div>
+    <div className="px-8 py-4">
+      <ProdcutIdViewHeader productName={data.name} />
       <ProductForm initialValues={data} />
     </div>
   );

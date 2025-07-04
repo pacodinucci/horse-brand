@@ -1,4 +1,5 @@
 import { ProductForm } from "@/modules/products/ui/components/product-form";
+import { ProdcutIdViewHeader } from "@/modules/products/ui/components/product-id-view-header";
 import { ProductIdView } from "@/modules/products/ui/views/product-id-view";
 import {
   ProductsViewError,
@@ -17,9 +18,12 @@ const ProductIdPage = async ({ params }: ProductIdPageProps) => {
   const { productId } = await params;
 
   if (productId === "new") {
-    // Renderizá el formulario vacío o un mensaje, o redirigí
-    return <ProductForm />;
-    // O podrías devolver <ProductForm /> para crear uno nuevo
+    return (
+      <div className="px-8 py-4">
+        <ProdcutIdViewHeader productName="Nuevo Producto" />
+        <ProductForm />
+      </div>
+    );
   }
 
   const queryClient = getQueryClient();

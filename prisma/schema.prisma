@@ -15,14 +15,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model product {
+model Product {
+  id            String   @id @unique @default(uuid())
+  name          String
+  categoryId    String
+  subCategoryId String
+  images        String[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  category    Category    @relation(fields: [categoryId], references: [id])
+  subCategory Subcategory @relation(fields: [subCategoryId], references: [id])
+  Stock       Stock[]
+}
+
+model Category {
   id          String   @id @unique @default(uuid())
   name        String
-  category    String
-  subCategory String
+  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  Stock       Stock[]
+
+  products      Product[]
+  subcategories Subcategory[]
+}
+
+model Subcategory {
+  id          String   @id @unique @default(uuid())
+  name        String
+  description String?
+  categoryId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category Category  @relation(fields: [categoryId], references: [id])
+  products Product[]
 }
 
 model Warehouse {
@@ -42,7 +69,7 @@ model Stock {
   quantity    Int
 
   warehouse Warehouse @relation(fields: [warehouseId], references: [id])
-  product   product   @relation(fields: [productId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
 
   @@unique([warehouseId, productId])
 }

@@ -1,10 +1,5 @@
 import Link from "next/link";
-import {
-  ChevronRightIcon,
-  TrashIcon,
-  PencilIcon,
-  MoreVerticalIcon,
-} from "lucide-react";
+import { ChevronRightIcon, TrashIcon, MoreVerticalIcon } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -21,24 +16,23 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-interface WarehouseIdViewHeaderProps {
-  warehouseName?: string;
+interface ProductIdViewHeaderProps {
+  productName?: string;
   onEdit?: () => void;
   onRemove?: () => void;
 }
 
-export const WarehouseIdViewHeader = ({
-  warehouseName,
-  onEdit,
+export const ProdcutIdViewHeader = ({
+  productName,
   onRemove,
-}: WarehouseIdViewHeaderProps) => {
+}: ProductIdViewHeaderProps) => {
   return (
     <div className="flex items-center justify-between">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild className="font-medium text-xl">
-              <Link href={"/backoffice/warehouses"}>Depósitos</Link>
+              <Link href={"/backoffice/products"}>Productos</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator className="text-foreground text-xl font-medium [&svg]:size-4">
@@ -49,7 +43,7 @@ export const WarehouseIdViewHeader = ({
               asChild
               className="font-medium text-xl text-foreground"
             >
-              <Link href={"/backoffice/warehouses"}>{warehouseName}</Link>
+              <Link href={"/backoffice/products"}>{productName}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -61,10 +55,6 @@ export const WarehouseIdViewHeader = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onEdit}>
-            <PencilIcon />
-            Editar
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={onRemove}>
             <TrashIcon />
             Borrar

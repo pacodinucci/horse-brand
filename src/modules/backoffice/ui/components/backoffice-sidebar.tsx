@@ -71,11 +71,8 @@ export const BackofficeSidebar = () => {
 
   return (
     <Sidebar>
-      <SidebarHeader className="text-sidebar-accent-foreground h-25">
-        <Link
-          href="/"
-          className="flex items-center justify-center gap-2 px-2 pt-2"
-        >
+      <SidebarHeader className="text-sidebar-accent-foreground h-23 py-0">
+        <Link href="/" className="flex items-center justify-center gap-2 px-2">
           <Image
             src="/logos/HB lite positivo.svg"
             height={200}
@@ -86,7 +83,7 @@ export const BackofficeSidebar = () => {
         </Link>
       </SidebarHeader>
       <div className="px-4 py-2">
-        <Separator className="opacity-50 text-[#5D6B68]" />
+        <Separator className="opacity-50 bg-[var(--var-brown-grey)]" />
       </div>
       <SidebarContent>
         <SidebarGroup>
@@ -115,9 +112,9 @@ export const BackofficeSidebar = () => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <div className="px-4 py-2">
-          <Separator className="opacity-10 text-[#5D6B68]" />
-        </div>
+        {/* <div className="px-4 py-2">
+          <Separator className="opacity-40 bg-[var(--var-brown-grey)]" />
+        </div> */}
       </SidebarContent>
       <SidebarFooter className="text-neutral-800">
         <BackofficeUserButton />

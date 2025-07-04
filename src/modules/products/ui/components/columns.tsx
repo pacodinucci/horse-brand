@@ -10,12 +10,12 @@ export const columns: ColumnDef<ProductsGetOne>[] = [
     header: "Nombre",
   },
   {
-    accessorKey: "category",
     header: "Categoría",
+    cell: ({ row }) => row.original.category?.name ?? "—",
   },
   {
-    accessorKey: "subCategory",
     header: "Subcategoría",
+    cell: ({ row }) => row.original.subCategory?.name ?? "—",
   },
   {
     accessorKey: "createdAt",
