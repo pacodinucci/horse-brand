@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { CategoryGetOne } from "@/modules/category/types";
 import { SubcategoryGetOne } from "@/modules/subcategory/types";
+import { ImageUpload } from "@/components/image-upload";
 
 export interface ProductFormProps {
   onSuccess?: () => void;
@@ -203,6 +204,19 @@ export const ProductForm = ({
                     ))}
                   </SelectContent>
                 </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          name="images"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Imágenes</FormLabel>
+              <FormControl>
+                <ImageUpload value={field.value} onChange={field.onChange} />
               </FormControl>
               <FormMessage />
             </FormItem>
