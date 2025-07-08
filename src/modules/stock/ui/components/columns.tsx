@@ -13,6 +13,7 @@ export const columns: ColumnDef<StockGetOne>[] = [
       const productName = variant?.product?.name || "";
       const attrs = variant?.attributes
         ? Object.entries(variant.attributes)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .map(([_, value]) => ` ${value}`)
             .join("  ")
         : "";
