@@ -42,7 +42,7 @@ const ATTRIBUTES = [
   { key: "colors", label: "Color" },
   { key: "size", label: "Talle" },
   { key: "material", label: "Material" },
-  { key: "dimensions", label: "Medida" },
+  { key: "dimensions", label: "Dimensiones" },
 ];
 
 export interface ProductFormProps {
@@ -240,7 +240,7 @@ export const ProductForm = ({
             )}
           />
         </div>
-        <div className="p-4 rounded-md bg-[var(--var-blue-grey)]/20">
+        <div className="p-4 rounded-md bg-[var(--var-blue-grey)]/10">
           <div className="flex flex-col gap-y-1 mb-4">
             <p className="text-sm">Atributos del producto</p>
             <p className="text-xs text-neutral-600">

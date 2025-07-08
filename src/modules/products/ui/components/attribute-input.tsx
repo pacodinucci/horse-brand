@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { PlusIcon, X } from "lucide-react";
 import { useState } from "react";
 
@@ -70,6 +71,9 @@ export function AttributeInput({
           </span>
         ))}
       </div>
+      {label !== "Dimensiones" && (
+        <Separator className="mt-2 max-w-xl bg-[var(--var-brown-grey)]/20" />
+      )}
     </div>
   );
 }
