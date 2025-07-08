@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { StockListHeader } from "@/modules/stock/ui/components/stock-list-header";
 import {
   StockView,

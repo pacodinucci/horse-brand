@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { WarehouseListHeader } from "@/modules/warehouses/ui/components/warehouse-list-header";
 import {
   WarehouseView,
