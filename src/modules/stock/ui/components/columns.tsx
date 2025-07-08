@@ -13,7 +13,7 @@ export const columns: ColumnDef<StockGetOne>[] = [
       const productName = variant?.product?.name || "";
       const attrs = variant?.attributes
         ? Object.entries(variant.attributes)
-            .map(([key, value]) => ` ${value}`)
+            .map(([_, value]) => ` ${value}`)
             .join("  ")
         : "";
 
