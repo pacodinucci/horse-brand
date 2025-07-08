@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { WarehouseForm } from "@/modules/warehouses/ui/components/warehouse-form";
 import { WarehouseIdView } from "@/modules/warehouses/ui/views/warehouse-id-view";
 import {

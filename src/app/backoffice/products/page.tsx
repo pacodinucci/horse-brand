@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { ProductsListHeader } from "@/modules/products/ui/components/products-list-header";
 import {
   ProductsView,

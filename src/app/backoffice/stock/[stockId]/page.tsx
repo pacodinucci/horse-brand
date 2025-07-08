@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { StockForm } from "@/modules/stock/ui/components/stock-form";
 import {
   StockIdView,

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { ProductForm } from "@/modules/products/ui/components/product-form";
 import { ProdcutIdViewHeader } from "@/modules/products/ui/components/product-id-view-header";
 import { ProductIdView } from "@/modules/products/ui/views/product-id-view";
