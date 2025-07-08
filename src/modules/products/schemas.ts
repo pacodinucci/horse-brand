@@ -5,6 +5,7 @@ export const productsInsertSchema = z.object({
   categoryId: z.string().min(1, "Requerido"),
   subCategoryId: z.string().min(1, "Requerido"),
   images: z.array(z.string().url()).min(1, "Al menos una imagen requerida."),
+  attributes: z.record(z.array(z.string())).optional(),
 });
 
 export const productsUpdateSchema = productsInsertSchema.extend({

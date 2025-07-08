@@ -21,6 +21,7 @@ model Product {
   categoryId    String
   subCategoryId String
   images        String[]
+  attributes    Json
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

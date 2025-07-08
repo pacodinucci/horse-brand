@@ -20,6 +20,8 @@ export const productsRouter = createTRPCRouter({
           name: input.name,
           categoryId: input.categoryId,
           subCategoryId: input.subCategoryId,
+          images: input.images,
+          attributes: input.attributes ?? {},
         },
       });
       return createdProduct;
@@ -101,6 +103,8 @@ export const productsRouter = createTRPCRouter({
           name: input.name,
           categoryId: input.categoryId,
           subCategoryId: input.subCategoryId,
+          images: input.images,
+          attributes: input.attributes ?? {},
         },
       });
 

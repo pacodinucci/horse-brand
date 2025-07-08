@@ -4,6 +4,7 @@ import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ProductForm } from "../components/product-form";
 import { ProdcutIdViewHeader } from "../components/product-id-view-header";
+import { normalizeAttributes } from "@/lib/helpers";
 
 interface ProductIdViewProps {
   productId?: string;
@@ -19,7 +20,12 @@ export const ProductIdView = ({ productId }: ProductIdViewProps) => {
   return (
     <div className="px-8 py-4">
       <ProdcutIdViewHeader productName={data.name} />
-      <ProductForm initialValues={data} />
+      <ProductForm
+        initialValues={{
+          ...data,
+          attributes: normalizeAttributes(data.attributes),
+        }}
+      />
     </div>
   );
 };

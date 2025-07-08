@@ -3,9 +3,10 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { ProductsGetOne } from "../../types";
 import { format } from "date-fns";
+import Image from "next/image";
 
 const PLACEHOLDER_IMAGE =
-  "https://pampadeacero.ar/storage/productos/i5Kq8EOzQMO99py10P46cTzJHe19QfjPow1Y05Jm.jpg";
+  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSbaXwqbkTkBrhQlStfpYmocGn0pg07Bn0DQ&s";
 
 export const columns: ColumnDef<ProductsGetOne>[] = [
   {
@@ -18,10 +19,14 @@ export const columns: ColumnDef<ProductsGetOne>[] = [
         <div>
           <div className="flex items-center gap-3">
             {imageUrl ? (
-              <img
-                src={PLACEHOLDER_IMAGE}
+              <Image
+                src={imageUrl}
                 alt={product.name}
-                className="w-10 h-10 object-cover rounded-md border"
+                width={40}
+                height={40}
+                className="object-cover w-10 h-10"
+                style={{ width: 40, height: 40 }}
+                unoptimized={imageUrl === PLACEHOLDER_IMAGE}
               />
             ) : (
               <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center text-xs text-muted-foreground">

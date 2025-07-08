@@ -10,7 +10,7 @@ const BackofficeLayout = ({ children }: DashboardLayoutProps) => {
   return (
     <SidebarProvider>
       <BackofficeSidebar />
-      <main className="flex flex-col h-screen w-screen bg-muted">
+      <main className="flex flex-col min-h-screen w-screen bg-muted overflow-x-scroll">
         <BackofficeNavbar />
         {children}
       </main>
