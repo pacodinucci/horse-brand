@@ -9,8 +9,25 @@ export const columns: ColumnDef<StockGetOne>[] = [
     accessorKey: "ProductVariant",
     header: "Producto",
     cell: ({ row }) => {
-      console.log(row.original);
-      return "Nombre del producto mas atributos";
+      const variant = row.original.ProductVariant;
+      const productName = variant?.product?.name || "";
+      const attrs = variant?.attributes
+        ? Object.entries(variant.attributes)
+            .map(([key, value]) => ` ${value}`)
+            .join("  ")
+        : "";
+
+      return `${productName}${attrs ? " - " + attrs : ""}`;
     },
+  },
+  {
+    accessorKey: "quantity",
+    header: "Cantidad",
+    cell: ({ row }) => row.original.quantity,
+  },
+  {
+    accessorKey: "warehouse",
+    header: "Depósito",
+    cell: ({ row }) => row.original.warehouse?.name || "-",
   },
 ];

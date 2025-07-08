@@ -19,7 +19,7 @@ export const StockView = () => {
       <DataTable
         data={data.items}
         columns={columns}
-        onRowClick={(row) => router.push(`/backoffice/products/${row.id}`)}
+        onRowClick={(row) => router.push(`/backoffice/stock/${row.id}`)}
       />
       {/* <DataPagination /> */}
     </div>
