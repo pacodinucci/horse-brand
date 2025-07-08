@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { CategoryListHeader } from "@/modules/category/ui/components/category-list-header";
 import {
   CategoryView,
