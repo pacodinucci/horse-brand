@@ -223,9 +223,12 @@ export const SignUpView = () => {
               </div>
             </form>
           </Form>
-          <div className="bg-radial from-primary/60 to-primary relative hidden md:flex flex-col gap-y-4 items-center justify-center">
-            <img src="/logo.png" alt="Image" className="h-[92px] w-[92x]" />
-            <p className="text-2xl font-semibold text-white">Horse Brand</p>
+          <div className="bg-radial from-[var(--var-sand)]/50 to-[var(--var-sand)] relative hidden md:flex flex-col gap-y-4 items-center justify-center">
+            <img
+              src="/logos/HB main positivo.svg"
+              alt="Image"
+              className="h-[256px] w-[256x]"
+            />
           </div>
         </CardContent>
       </Card>

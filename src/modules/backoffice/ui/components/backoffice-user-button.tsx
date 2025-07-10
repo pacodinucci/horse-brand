@@ -85,7 +85,7 @@ export const BackofficeUserButton = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="rounded-lg border border-border/10 p-3 w-full flex gap-x-2 items-center justify-between hover:bg-[var(--var-sand)] overflow-hidden cursor-pointer">
+      <DropdownMenuTrigger className="rounded-lg border border-border/10 p-3 w-full flex gap-x-2 items-center justify-between bg-[var(--var-sand)]/40 hover:bg-[var(--var-sand)] overflow-hidden cursor-pointer">
         {data.user.image ? (
           <Avatar>
             <AvatarImage src={data.user.image} />
@@ -121,7 +121,7 @@ export const BackofficeUserButton = () => {
           className="cursor-pointer flex items-center justify-between"
           onClick={onLogout}
         >
-          Logout
+          Cerrar Sesión
           <LogOutIcon className="size-4" />
         </DropdownMenuItem>
       </DropdownMenuContent>

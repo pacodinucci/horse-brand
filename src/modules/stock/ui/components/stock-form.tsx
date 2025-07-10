@@ -104,7 +104,6 @@ export const StockForm = ({
   // Seleccioná el producto cuando cambia el id
   useEffect(() => {
     const idActual = form.watch("productId") || initialValues?.productId;
-    // @ts-expect-error Type instantiation is excessively deep and possibly infinite
     const found = productsData?.items.find((p) => p.id === idActual);
     setSelectedProduct(found);
     // eslint-disable-next-line react-hooks/exhaustive-deps

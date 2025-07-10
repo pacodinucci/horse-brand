@@ -110,4 +110,19 @@ export const productsRouter = createTRPCRouter({
 
       return updatedProduct;
     }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      const product = await db.product.findUnique({ where: { id: input.id } });
+      if (!product) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Producto no encontrado.",
+        });
+      }
+
+      await db.product.delete({ where: { id: input.id } });
+      return { success: true };
+    }),
 });

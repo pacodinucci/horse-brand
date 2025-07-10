@@ -90,6 +90,7 @@ export const ProductForm = ({
   );
 
   const createProduct = useMutation(
+    // @ts-expect-error Type instantiation is excessively deep and possibly infinite
     trpc.products.create.mutationOptions({
       onSuccess: async () => {
         await queryClient.invalidateQueries(

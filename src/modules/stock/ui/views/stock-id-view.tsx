@@ -21,7 +21,6 @@ export const StockIdView = () => {
     quantity: data.quantity,
     sku: data.ProductVariant?.sku ?? "",
     attributes:
-      // @ts-expect-error Type instantiation is excessively deep and possibly infinite
       typeof data.ProductVariant?.attributes === "object" &&
       data.ProductVariant?.attributes !== null
         ? (data.ProductVariant.attributes as Record<string, string>)

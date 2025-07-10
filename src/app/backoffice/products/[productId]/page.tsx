@@ -2,11 +2,11 @@ export const dynamic = "force-dynamic";
 
 import { ProductForm } from "@/modules/products/ui/components/product-form";
 import { ProdcutIdViewHeader } from "@/modules/products/ui/components/product-id-view-header";
-import { ProductIdView } from "@/modules/products/ui/views/product-id-view";
 import {
-  ProductsViewError,
-  ProductsViewLoading,
-} from "@/modules/products/ui/views/products-view";
+  ProductIdView,
+  ProductIdViewError,
+  ProductIdViewLoading,
+} from "@/modules/products/ui/views/product-id-view";
 import { getQueryClient, trpc } from "@/trpc/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { ErrorBoundary } from "next/dist/client/components/error-boundary";
@@ -37,8 +37,8 @@ const ProductIdPage = async ({ params }: ProductIdPageProps) => {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <Suspense fallback={<ProductsViewLoading />}>
-        <ErrorBoundary errorComponent={ProductsViewError}>
+      <Suspense fallback={<ProductIdViewLoading />}>
+        <ErrorBoundary errorComponent={ProductIdViewError}>
           <ProductIdView productId={productId} />
         </ErrorBoundary>
       </Suspense>
