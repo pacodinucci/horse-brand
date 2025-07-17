@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { StockForm } from "@/modules/stock/ui/components/stock-form";
+import { StockIdViewHeader } from "@/modules/stock/ui/components/stock-id-view-header";
 import {
   StockIdView,
   StockIdViewError,
@@ -20,7 +21,8 @@ const StockIdPage = async ({ params }: StockIdPageProps) => {
 
   if (stockId === "new") {
     return (
-      <div>
+      <div className="px-8 py-4">
+        <StockIdViewHeader stockTitle="Nuevo Stock" />
         <StockForm />
       </div>
     );

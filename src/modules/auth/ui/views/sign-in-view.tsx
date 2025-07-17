@@ -65,7 +65,7 @@ export const SignInView = () => {
     );
   };
 
-  const onSocial = (provider: "github" | "google") => {
+  const onSocial = (provider: "google") => {
     setError(null);
     setPending(true);
 

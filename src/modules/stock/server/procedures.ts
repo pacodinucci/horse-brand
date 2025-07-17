@@ -71,6 +71,7 @@ export const stockRouter = createTRPCRouter({
         where: { id: input.id },
         include: {
           warehouse: true,
+          product: true,
           ProductVariant: {
             include: { product: true },
           },

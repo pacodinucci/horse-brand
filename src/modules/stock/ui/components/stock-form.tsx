@@ -192,7 +192,7 @@ export const StockForm = ({
                   }}
                   disabled={isPending}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white">
                     <SelectValue placeholder="Seleccionar producto" />
                   </SelectTrigger>
                   <SelectContent>
@@ -222,7 +222,7 @@ export const StockForm = ({
                   onValueChange={field.onChange}
                   disabled={isPending}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white">
                     <SelectValue placeholder="Seleccionar depósito" />
                   </SelectTrigger>
                   <SelectContent>
@@ -257,6 +257,7 @@ export const StockForm = ({
                   onChange={(e) => {
                     field.onChange(Number(e.target.value));
                   }}
+                  className="bg-white"
                 />
               </FormControl>
               <FormMessage />
@@ -272,7 +273,7 @@ export const StockForm = ({
             <FormItem>
               <FormLabel>SKU (opcional)</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} className="bg-white" />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -6,10 +6,11 @@ import { StockForm } from "../components/stock-form";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useTRPC } from "@/trpc/client";
+import { StockIdViewHeader } from "../components/stock-id-view-header";
 
 export const StockIdView = () => {
   const params = useParams();
-  const id = params?.stockId as string; // Ajustá si tu param se llama diferente
+  const id = params?.stockId as string;
   const trpc = useTRPC();
 
   const { data } = useSuspenseQuery(trpc.stock.getOne.queryOptions({ id }));
@@ -17,6 +18,7 @@ export const StockIdView = () => {
   const initialValues = {
     id: data.id,
     productId: data.ProductVariant?.product.id ?? "",
+    productName: data.product?.name,
     warehouseId: data.warehouse.id,
     quantity: data.quantity,
     sku: data.ProductVariant?.sku ?? "",
@@ -27,7 +29,18 @@ export const StockIdView = () => {
         : {},
   };
 
-  return <StockForm initialValues={initialValues} />;
+  const productName = initialValues.productName || "";
+  const attrs = initialValues.attributes
+    ? Object.values(initialValues.attributes).join(" ")
+    : "";
+  const stockTitle = attrs ? `${productName} - ${attrs}` : productName;
+
+  return (
+    <div className="p-6">
+      <StockIdViewHeader stockTitle={stockTitle} />
+      <StockForm initialValues={initialValues} />
+    </div>
+  );
 };
 
 export const StockIdViewLoading = () => {
