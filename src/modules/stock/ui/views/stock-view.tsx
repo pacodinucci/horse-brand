@@ -6,19 +6,19 @@ import { LoadingState } from "@/components/loading-state";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { columns } from "../components/columns";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { StockFormDialog } from "../components/stock-form-dialog";
+import { StockGetOne } from "../../types";
+import { StockFormProps } from "../components/stock-form";
 // import { DataPagination } from "@/components/data-pagination";
 
 export const StockView = () => {
-  const router = useRouter();
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(trpc.stock.getMany.queryOptions({}));
 
-  const [selectedRow, setSelectedRow] = useState<any | null>(null);
+  const [selectedRow, setSelectedRow] = useState<StockFormProps | null>(null);
 
-  const getInitialValues = (row: any) => ({
+  const getInitialValues = (row: StockGetOne) => ({
     id: row.id,
     productId: row.ProductVariant?.product?.id ?? "",
     warehouseId: row.warehouse?.id ?? "",
