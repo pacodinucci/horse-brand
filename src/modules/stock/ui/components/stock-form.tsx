@@ -63,7 +63,6 @@ export interface StockFormProps {
     productId: string;
     warehouseId: string;
     quantity: number;
-    sku?: string;
     attributes?: Record<string, string>;
   };
 }
@@ -90,13 +89,15 @@ export const StockForm = ({
     ProductForStockForm | undefined
   >(undefined);
 
+  const isEdit = !!initialValues?.id;
+
   const form = useForm({
     resolver: zodResolver(stockInsertSchema),
     defaultValues: {
+      id: initialValues?.id ?? undefined,
       productId: initialValues?.productId ?? "",
       warehouseId: initialValues?.warehouseId ?? "",
       quantity: initialValues?.quantity ?? 0,
-      sku: initialValues?.sku ?? "",
       attributes: initialValues?.attributes ?? {},
     },
   });
@@ -109,8 +110,8 @@ export const StockForm = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productsData, form.watch("productId")]);
 
-  const createOrUpdateStock = useMutation(
-    trpc.stock.createOrUpdate.mutationOptions({
+  const createStock = useMutation(
+    trpc.stock.create.mutationOptions({
       onSuccess: async () => {
         await queryClient.invalidateQueries(
           trpc.stock.getMany.queryOptions({})
@@ -124,13 +125,46 @@ export const StockForm = ({
     })
   );
 
-  const isPending = createOrUpdateStock.isPending;
+  const updateStock = useMutation(
+    trpc.stock.update.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries(
+          trpc.stock.getMany.queryOptions({})
+        );
+        router.push("/backoffice/stock");
+        onSuccess?.();
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    })
+  );
+
+  const isPending = createStock.isPending;
+
+  // const onSubmit = form.handleSubmit((values) => {
+  //   createStock.mutate({
+  //     ...values,
+  //     quantity: Number(values.quantity),
+  //   });
+  // });
 
   const onSubmit = form.handleSubmit((values) => {
-    createOrUpdateStock.mutate({
-      ...values,
-      quantity: Number(values.quantity),
-    });
+    if (isEdit && initialValues?.id) {
+      updateStock.mutate({
+        ...values,
+        id: initialValues.id,
+        // warehouseId: values.warehouseId,
+        // quantity: Number(values.quantity),
+        // sku: values.sku,
+        // attributes: values.attributes,
+      });
+    } else {
+      createStock.mutate({
+        ...values,
+        quantity: Number(values.quantity),
+      });
+    }
   });
 
   // Atributos dinámicos según el producto seleccionado
@@ -265,21 +299,6 @@ export const StockForm = ({
           )}
         />
 
-        {/* SKU */}
-        <FormField
-          name="sku"
-          control={form.control}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>SKU (opcional)</FormLabel>
-              <FormControl>
-                <Input {...field} className="bg-white" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <div className="flex justify-between gap-x-2">
           {onCancel && (
             <Button
@@ -292,7 +311,7 @@ export const StockForm = ({
             </Button>
           )}
           <Button disabled={isPending} type="submit">
-            Guardar stock
+            {isEdit ? "Actualizar Stock" : "Guardar Stock"}
           </Button>
         </div>
       </form>

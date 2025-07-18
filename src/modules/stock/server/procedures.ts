@@ -12,16 +12,82 @@ import { stockInsertSchema } from "../schemas";
 import { Prisma } from "@prisma/client";
 
 export const stockRouter = createTRPCRouter({
-  createOrUpdate: protectedProcedure
+  // createOrUpdate: protectedProcedure
+  //   .input(stockInsertSchema)
+  //   .mutation(async ({ input }) => {
+  //     const { productId, warehouseId, attributes, quantity, sku } = input;
+
+  //     let productVariant = await db.productVariant.findFirst({
+  //       where: {
+  //         productId,
+  //         attributes: {
+  //           equals: attributes,
+  //         },
+  //       },
+  //     });
+
+  //     if (!productVariant) {
+  //       productVariant = await db.productVariant.create({
+  //         data: {
+  //           productId,
+  //           attributes,
+  //           sku,
+  //         },
+  //       });
+  //     }
+
+  //     let stock = await db.stock.findFirst({
+  //       where: {
+  //         productVariantId: productVariant.id,
+  //         warehouseId,
+  //       },
+  //     });
+
+  //     if (stock) {
+  //       stock = await db.stock.update({
+  //         where: { id: stock.id },
+  //         data: {
+  //           quantity: stock.quantity + quantity,
+  //         },
+  //       });
+  //     } else {
+  //       stock = await db.stock.create({
+  //         data: {
+  //           productVariantId: productVariant.id,
+  //           warehouseId,
+  //           quantity,
+  //           productId,
+  //         },
+  //       });
+  //     }
+
+  //     return stock;
+  //   }),
+
+  create: protectedProcedure
     .input(stockInsertSchema)
     .mutation(async ({ input }) => {
-      const { productId, warehouseId, attributes, quantity, sku } = input;
+      const { id, productId, warehouseId, attributes, quantity, sku } = input;
+
+      if (id) {
+        // Si viene id, editar directamente el stock (NO sumar, actualizar a la cantidad)
+        return db.stock.update({
+          where: { id },
+          data: {
+            quantity, // PONE la cantidad nueva, NO suma
+            // Si querés permitir editar la variante también:
+            // productVariantId: ..., // requeriría más lógica
+          },
+        });
+      }
+
+      // --- FLUJO DE CREAR ---
 
       let productVariant = await db.productVariant.findFirst({
         where: {
           productId,
           attributes: {
-            equals: attributes,
+            equals: attributes, // attributes es tu objeto { size: "L", colors: "Rojo" }
           },
         },
       });
@@ -44,6 +110,7 @@ export const stockRouter = createTRPCRouter({
       });
 
       if (stock) {
+        // Suma cantidad si ya existe (caso "entrada")
         stock = await db.stock.update({
           where: { id: stock.id },
           data: {
@@ -158,5 +225,60 @@ export const stockRouter = createTRPCRouter({
         total,
         totalPages: Math.ceil(total / pageSize),
       };
+    }),
+
+  remove: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      // Primero, comprobá que exista (opcional pero prolijo)
+      const stock = await db.stock.findUnique({ where: { id: input.id } });
+
+      if (!stock) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Stock no encontrado.",
+        });
+      }
+
+      await db.stock.delete({
+        where: { id: input.id },
+      });
+
+      return { success: true };
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        quantity: z.number(),
+        warehouseId: z.string(),
+        // Podés permitir cambiar atributos, productVariant, etc, según tu lógica
+        // attributes: z.record(z.string(), z.string()).optional(),
+        // productVariantId: z.string().optional(),
+        sku: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { id, quantity, warehouseId } = input;
+
+      const stock = await db.stock.findUnique({ where: { id } });
+      if (!stock) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Stock no encontrado.",
+        });
+      }
+
+      // Actualizá solo lo necesario (agregá más campos si querés)
+      const updated = await db.stock.update({
+        where: { id },
+        data: {
+          quantity,
+          warehouse: { connect: { id: warehouseId } },
+        },
+      });
+
+      return updated;
     }),
 });

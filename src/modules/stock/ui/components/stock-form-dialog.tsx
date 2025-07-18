@@ -23,7 +23,10 @@ export const StockFormDialog = ({
       open={open}
       onOpenChange={onOpenChange}
     >
-      <StockForm initialValues={initialValues} />
+      <StockForm
+        initialValues={initialValues}
+        onSuccess={() => onOpenChange(false)}
+      />
     </ResponsiveDialog>
   );
 };

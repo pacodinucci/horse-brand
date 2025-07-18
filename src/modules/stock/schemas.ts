@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const stockInsertSchema = z.object({
+  id: z.string().optional(),
   productId: z.string(),
   warehouseId: z.string(),
   attributes: z.record(z.string(), z.string()),
