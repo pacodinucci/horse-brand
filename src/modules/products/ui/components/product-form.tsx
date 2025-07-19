@@ -40,7 +40,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const ATTRIBUTES = [
   { key: "colors", label: "Color" },
-  { key: "size", label: "Talle" },
+  // { key: "size", label: "Talle" },
   { key: "material", label: "Material" },
   { key: "dimensions", label: "Dimensiones" },
 ];
@@ -55,6 +55,7 @@ export interface ProductFormProps {
     subCategoryId: string;
     images?: string[];
     attributes?: Record<string, string[]>;
+    price: number;
   };
 }
 
@@ -135,6 +136,7 @@ export const ProductForm = ({
       subCategoryId: initialValues?.subCategoryId ?? "",
       images: initialValues?.images ?? [],
       attributes: initialValues?.attributes ?? {},
+      price: initialValues?.price ?? 0,
     },
   });
 
@@ -293,6 +295,33 @@ export const ProductForm = ({
             </div>
           ))}
         </div>
+        <FormField
+          name="price"
+          control={form.control}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Precio</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min={0}
+                  step={1}
+                  {...field}
+                  value={field.value ?? ""}
+                  placeholder="Precio"
+                  className="bg-white"
+                  onChange={(e) => {
+                    // Solo acepta enteros
+                    const val =
+                      e.target.value === "" ? "" : parseInt(e.target.value, 10);
+                    field.onChange(isNaN(val as number) ? "" : val);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           name="images"
           control={form.control}

@@ -17,7 +17,7 @@ import { Toaster } from "@/components/ui/sonner";
 const lato = Lato({
   variable: "--font-lato",
   subsets: ["latin"],
-  weight: ["400", "700"], // <-- agregá los que vas a usar
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {

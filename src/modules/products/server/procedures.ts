@@ -22,6 +22,7 @@ export const productsRouter = createTRPCRouter({
           subCategoryId: input.subCategoryId,
           images: input.images,
           attributes: input.attributes ?? {},
+          price: input.price,
         },
       });
       return createdProduct;
@@ -61,6 +62,7 @@ export const productsRouter = createTRPCRouter({
           include: {
             category: true,
             subCategory: true,
+            ProductVariant: true,
           },
         }),
         db.product.count({ where }),
@@ -81,6 +83,7 @@ export const productsRouter = createTRPCRouter({
         include: {
           category: true,
           subCategory: true,
+          ProductVariant: true,
         },
       });
 
