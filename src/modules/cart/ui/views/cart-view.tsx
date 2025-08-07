@@ -1,24 +1,71 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { useCartStore } from "@/store/cart";
 import { Button } from "@/components/ui/button";
-import { X, Trash2, Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { Trash2, Minus, Plus } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { useTRPC } from "@/trpc/client";
+import { useQuery } from "@tanstack/react-query";
+import { CustomerFormModal } from "../components/customer-form-modal";
 
 export const CartView = () => {
+  const { data: user } = authClient.useSession();
+  const email = user?.user.email ?? "";
+
+  const trpc = useTRPC();
   const cartItems = useCartStore((state) => state.items);
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
-  const clearCart = useCartStore((state) => state.clearCart);
+  // const clearCart = useCartStore((state) => state.clearCart);
 
   const [coupon, setCoupon] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+
+  // const { data: customer } = trpc.customers.findByEmail.queryOptions({
+  //   email,
+  // });
+
+  const { data: customer } = useQuery(
+    trpc.customers.findByEmail.queryOptions({ email })
+  );
+
+  console.log({ email, customer });
 
   // Suma de subtotales
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+
+  const handleCheckout = async () => {
+    if (!customer || !customer.email) {
+      setShowCustomerModal(true);
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cart: cartItems,
+        }),
+      });
+      const data = await res.json();
+      if (data.init_point) {
+        window.location.href = data.init_point; // Redirige a MercadoPago
+      } else {
+        alert(data.error || "No se pudo iniciar el pago.");
+      }
+    } catch (err) {
+      alert("Ocurrió un error al procesar el pago.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex gap-10 max-w-7xl mx-auto py-12">
@@ -132,10 +179,20 @@ export const CartView = () => {
             ${subtotal.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
           </span>
         </div>
-        <Button className="bg-[var(--var-brown)] text-white text-lg py-3 rounded mt-2">
+        <Button
+          className="bg-[var(--var-brown)] text-white text-lg py-3 rounded mt-2"
+          onClick={handleCheckout}
+          disabled={loading || cartItems.length === 0}
+        >
           Finalizar compra
         </Button>
       </aside>
+      {showCustomerModal && (
+        <CustomerFormModal
+          email={email}
+          onClose={() => setShowCustomerModal(false)}
+        />
+      )}
     </div>
   );
 };

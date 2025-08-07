@@ -26,8 +26,6 @@ export const LandingView = () => {
     (item) => item.id === selectedProductId
   );
 
-  console.log("SELECTED --> ", selectedProduct);
-
   return (
     <div className="flex gap-16 min-h-screen px-8 py-6 relative">
       <div className="absolute top-5 right-5">

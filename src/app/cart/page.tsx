@@ -1,7 +1,7 @@
 import { CartView } from "@/modules/cart/ui/views/cart-view";
 import { Navbar } from "@/modules/landing/ui/components/navbar";
 
-const CartPage = () => {
+const CartPage = async () => {
   return (
     <>
       <Navbar />

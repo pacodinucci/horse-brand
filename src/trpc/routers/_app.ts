@@ -4,6 +4,7 @@ import { productsRouter } from "@/modules/products/server/procedures";
 import { categoryRouter } from "@/modules/category/server/procedures";
 import { subcategoryRouter } from "@/modules/subcategory/server/procedures";
 import { stockRouter } from "@/modules/stock/server/procedures";
+import { customersRouter } from "@/modules/customers/server/procedures";
 
 export const appRouter = createTRPCRouter({
   products: productsRouter,
@@ -11,6 +12,7 @@ export const appRouter = createTRPCRouter({
   category: categoryRouter,
   subcategory: subcategoryRouter,
   stock: stockRouter,
+  customers: customersRouter,
 });
-// export type definition of API
+
 export type AppRouter = typeof appRouter;
