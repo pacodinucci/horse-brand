@@ -46,7 +46,7 @@ export const CustomerFormModal = ({
         toast.success("Datos guardados correctamente.");
         onClose();
       },
-      onError: (err: any) => {
+      onError: (err) => {
         toast.error(err.message || "Error al guardar los datos");
       },
     })

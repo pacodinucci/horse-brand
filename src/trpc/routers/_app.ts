@@ -5,6 +5,7 @@ import { categoryRouter } from "@/modules/category/server/procedures";
 import { subcategoryRouter } from "@/modules/subcategory/server/procedures";
 import { stockRouter } from "@/modules/stock/server/procedures";
 import { customersRouter } from "@/modules/customers/server/procedures";
+import { ordersRouter } from "@/modules/orders/server/procedures";
 
 export const appRouter = createTRPCRouter({
   products: productsRouter,
@@ -13,6 +14,7 @@ export const appRouter = createTRPCRouter({
   subcategory: subcategoryRouter,
   stock: stockRouter,
   customers: customersRouter,
+  orders: ordersRouter,
 });
 
 export type AppRouter = typeof appRouter;

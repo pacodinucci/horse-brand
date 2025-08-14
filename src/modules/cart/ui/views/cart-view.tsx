@@ -18,15 +18,11 @@ export const CartView = () => {
   const cartItems = useCartStore((state) => state.items);
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
-  // const clearCart = useCartStore((state) => state.clearCart);
+  const clearCart = useCartStore((state) => state.clearCart);
 
   const [coupon, setCoupon] = useState("");
   const [loading, setLoading] = useState(false);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
-
-  // const { data: customer } = trpc.customers.findByEmail.queryOptions({
-  //   email,
-  // });
 
   const { data: customer } = useQuery(
     trpc.customers.findByEmail.queryOptions({ email })
@@ -52,8 +48,10 @@ export const CartView = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           cart: cartItems,
+          customerId: customer.id,
         }),
       });
+      clearCart();
       const data = await res.json();
       if (data.init_point) {
         window.location.href = data.init_point; // Redirige a MercadoPago
@@ -61,6 +59,7 @@ export const CartView = () => {
         alert(data.error || "No se pudo iniciar el pago.");
       }
     } catch (err) {
+      console.error(err);
       alert("Ocurrió un error al procesar el pago.");
     } finally {
       setLoading(false);
