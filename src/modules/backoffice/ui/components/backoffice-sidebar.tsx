@@ -52,7 +52,7 @@ const firstSection = [
   {
     icon: HandCoins,
     label: "Ventas",
-    href: "/backoffice/sales",
+    href: "/backoffice/orders",
   },
   {
     icon: Users,
