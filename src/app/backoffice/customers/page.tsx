@@ -9,6 +9,8 @@ import {
 } from "@/modules/customers/ui/views/customers-view";
 import { CustomersListHeader } from "@/modules/customers/ui/components/customers-list-header";
 
+export const dynamic = "force-dynamic";
+
 const CustomersPage = () => {
   const queryClient = getQueryClient();
   void queryClient.prefetchQuery(trpc.customers.getMany.queryOptions({}));

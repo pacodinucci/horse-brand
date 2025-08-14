@@ -11,6 +11,8 @@ import { Navbar } from "@/modules/landing/ui/components/navbar";
 
 // import { authClient } from "@/lib/auth-client";
 
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   // const router = useRouter();
   // const { data: session, isPending } = authClient.useSession();

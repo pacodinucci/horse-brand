@@ -9,6 +9,8 @@ import {
 } from "@/modules/orders/ui/views/orders-view";
 import { OrdersListHeader } from "@/modules/orders/ui/components/orders-list-header";
 
+export const dynamic = "force-dynamic";
+
 const OrdersPage = () => {
   const queryClient = getQueryClient();
   void queryClient.prefetchQuery(trpc.orders.getMany.queryOptions({}));
