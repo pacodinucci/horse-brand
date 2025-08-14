@@ -9,7 +9,7 @@ import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 export const OrdersView = () => {
-  const [selectedOrder, setSelectedOrder] = useState("");
+  const [, setSelectedOrder] = useState("");
 
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(trpc.orders.getMany.queryOptions({}));
