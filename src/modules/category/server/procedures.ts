@@ -124,4 +124,42 @@ export const categoryRouter = createTRPCRouter({
       });
       return updated;
     }),
+
+  ensureByNames: protectedProcedure
+    .input(z.object({ names: z.array(z.string().min(1)).min(1) }))
+    .mutation(async ({ input }) => {
+      // normalizar + deduplicar
+      const names = Array.from(
+        new Set(input.names.map((n) => n.trim()).filter(Boolean))
+      );
+
+      const created: { id: string; name: string }[] = [];
+      const existing: { id: string; name: string }[] = [];
+
+      await db.$transaction(async (tx) => {
+        for (const name of names) {
+          const found = await tx.category.findFirst({
+            where: { name: { equals: name, mode: "insensitive" } },
+            select: { id: true, name: true },
+          });
+
+          if (found) {
+            existing.push(found);
+          } else {
+            const c = await tx.category.create({
+              data: { name }, // description si querés
+              select: { id: true, name: true },
+            });
+            created.push(c);
+          }
+        }
+      });
+
+      return {
+        createdCount: created.length,
+        existingCount: existing.length,
+        created,
+        existing,
+      };
+    }),
 });

@@ -17,12 +17,15 @@ datasource db {
 
 model Product {
   id            String   @id @unique @default(uuid())
-  name          String
+  name          String   @unique
   categoryId    String
   subCategoryId String
-  images        String[]
-  attributes    Json
+  images        String[] @default([])
+  colors        String[] @default([])
+  materials     String[] @default([])
+  measures      String[] @default([])
   price         Int
+  supplier      String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -34,7 +37,8 @@ model Product {
 
 model Category {
   id          String   @id @unique @default(uuid())
-  name        String
+  name        String   @unique
+  slug        String?  @unique
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -46,6 +50,7 @@ model Category {
 model Subcategory {
   id          String   @id @unique @default(uuid())
   name        String
+  slug        String?
   description String?
   categoryId  String
   createdAt   DateTime @default(now())
@@ -66,10 +71,13 @@ model Warehouse {
 }
 
 model ProductVariant {
-  id         String  @id @default(uuid())
-  productId  String
-  sku        String? @unique
-  attributes Json
+  id        String  @id @default(uuid())
+  productId String
+  sku       String? @unique
+
+  color    String?
+  material String?
+  measure  String?
 
   product Product @relation(fields: [productId], references: [id])
   stock   Stock[]
@@ -77,7 +85,7 @@ model ProductVariant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([productId, attributes])
+  @@unique([productId, color, material, measure])
 }
 
 model Stock {
