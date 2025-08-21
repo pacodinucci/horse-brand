@@ -14,6 +14,7 @@ type Props = { open: boolean; onOpenChange: (open: boolean) => void };
 type RowInput = {
   "Nombre Base": string;
   Categoria?: string | null;
+  Subcategoria?: string | null; // <-- agregado
   Color?: string | null;
   Material?: string | null;
   Medidas?: string | null;
@@ -36,6 +37,7 @@ function matrixToRowInputs(matrix: Matrix): RowInput[] {
   if (idxNombre === -1) return []; // si falta la cabecera, devolvemos vacío
 
   const idxCategoria = findIdx("Categoria");
+  const idxSubcategoria = findIdx("Subcategoria"); // <-- agregado
   const idxColor = findIdx("Color");
   const idxMaterial = findIdx("Material");
   const idxMedidas = findIdx("Medidas");
@@ -57,6 +59,7 @@ function matrixToRowInputs(matrix: Matrix): RowInput[] {
       const row: RowInput = {
         "Nombre Base": nombre,
         Categoria: pickStr(r as Cell[], idxCategoria),
+        Subcategoria: pickStr(r as Cell[], idxSubcategoria), // <-- agregado
         Color: pickStr(r as Cell[], idxColor),
         Material: pickStr(r as Cell[], idxMaterial),
         Medidas: pickStr(r as Cell[], idxMedidas),
@@ -77,7 +80,6 @@ export const ImportFromExcelModal = ({ open, onOpenChange }: Props) => {
   const ensureProducts = useMutation(
     trpc.products.createNewFromRows.mutationOptions({
       onSuccess: async (data) => {
-        // pasá los filtros que uses en tu lista de productos (si los hay)
         await queryClient.invalidateQueries(
           trpc.products.getMany.queryOptions({})
         );

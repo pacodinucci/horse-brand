@@ -11,39 +11,53 @@ import {
 import { TRPCError } from "@trpc/server";
 import { productsInsertSchema, productsUpdateSchema } from "../schemas";
 
+/** === Excel row schema === */
 const rowSchema = z.object({
-  Categoria: z.string().optional().nullable(), // "Cat" o "Cat/Sub"
-  "Nombre Base": z.string().min(1), // Product.name
+  Categoria: z.string().optional().nullable(),
+  Subcategoria: z.string().optional().nullable(),
+  "Nombre Base": z.string().min(1),
   Color: z.string().optional().nullable(),
   Material: z.string().optional().nullable(),
   Medidas: z.string().optional().nullable(),
   Precio: z.union([z.string(), z.number()]).optional().nullable(),
   Proveedor: z.string().optional().nullable(),
 });
-
 type Row = z.infer<typeof rowSchema>;
 
-const norm = (v: unknown) => {
+/** === Helpers === */
+const norm = (v: unknown): string | undefined => {
   if (v == null) return undefined;
   const s = String(v).trim();
   return s.length ? s : undefined;
 };
-const toInt = (v: unknown) => {
+const toInt = (v: unknown): number => {
   const n = Number(v);
   return Number.isFinite(n) ? Math.trunc(n) : 0;
 };
-const splitCategoria = (raw?: string | null) => {
-  const v = norm(raw);
-  if (!v) return { cat: "Sin categoría", sub: "General" };
-  const [cat, sub] = v
-    .split("/")
-    .map((x) => x.trim())
-    .filter(Boolean);
-  return { cat: cat ?? "Sin categoría", sub: sub ?? "General" };
-};
-const union = (arr: (string | undefined)[]) =>
-  Array.from(new Set(arr.filter(Boolean) as string[]));
+const union = (arr: Array<string | undefined | null>): string[] =>
+  Array.from(new Set(arr.filter((s): s is string => !!s)));
 
+const getCatSub = (
+  categoria?: string | null,
+  subcategoria?: string | null
+): { cat: string; sub: string } | null => {
+  const c = norm(categoria);
+  const s = norm(subcategoria);
+  if (c && s) return { cat: c, sub: s }; // caso ideal
+
+  if (c && !s) {
+    // Soporta "Categoria/Subcategoria" en una sola celda
+    const parts = c
+      .split("/")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (parts.length >= 2) return { cat: parts[0], sub: parts[1] };
+    return null; // falta sub
+  }
+  return null; // falta cat o ambas
+};
+
+/** === Router === */
 export const productsRouter = createTRPCRouter({
   create: protectedProcedure
     .input(productsInsertSchema)
@@ -63,6 +77,7 @@ export const productsRouter = createTRPCRouter({
       });
       return createdProduct;
     }),
+
   getMany: protectedProcedure
     .input(
       z.object({
@@ -78,7 +93,6 @@ export const productsRouter = createTRPCRouter({
     .query(async ({ input }) => {
       const { page, pageSize, search } = input;
 
-      // Filtro solo por búsqueda
       const where = search
         ? {
             name: {
@@ -88,7 +102,6 @@ export const productsRouter = createTRPCRouter({
           }
         : {};
 
-      // Datos paginados
       const [items, total] = await Promise.all([
         db.product.findMany({
           where,
@@ -169,10 +182,14 @@ export const productsRouter = createTRPCRouter({
       return { success: true };
     }),
 
+  /** Importa desde Excel:
+   * - Asegura cat/sub por fila (case-insensitive)
+   * - Crea producto solo si "Nombre Base" no existe
+   */
   createNewFromRows: protectedProcedure
     .input(z.object({ rows: z.array(rowSchema).min(1) }))
     .mutation(async ({ input }) => {
-      // 1) agrupar por "Nombre Base"
+      // 1) Agrupar por "Nombre Base"
       const groups = new Map<string, Row[]>();
       for (const r of input.rows) {
         const name = norm(r["Nombre Base"]);
@@ -184,14 +201,20 @@ export const productsRouter = createTRPCRouter({
       const allNames = Array.from(groups.keys());
 
       if (allNames.length === 0) {
-        return { ok: true as const, created: 0, skippedExisting: 0 };
+        return {
+          ok: true as const,
+          created: 0,
+          skippedExisting: 0,
+          skippedInvalid: 0,
+          invalid: [] as Array<{ name: string; reason: string }>,
+        };
       }
 
-      // 2) buscar existentes (case-insensitive)
+      // 2) Buscar existentes (case-insensitive)
       const existing = await db.product.findMany({
         where: {
           OR: allNames.map((n) => ({
-            name: { equals: n, mode: "insensitive" as const },
+            name: { equals: n, mode: Prisma.QueryMode.insensitive },
           })),
         },
         select: { name: true },
@@ -201,60 +224,111 @@ export const productsRouter = createTRPCRouter({
       const newNames = allNames.filter(
         (n) => !existingLower.has(n.toLowerCase())
       );
-      if (newNames.length === 0) {
-        return {
-          ok: true as const,
-          created: 0,
-          skippedExisting: allNames.length,
-        };
-      }
 
-      // 3) crear cada producto nuevo
+      // 3) Crear cada producto NUEVO (no tocamos existentes)
       let created = 0;
+      const invalid: Array<{ name: string; reason: string }> = [];
 
       for (const name of newNames) {
         const rows = groups.get(name)!;
 
-        // agregados para arrays y campos base
+        // Atributos agregados desde TODAS las filas de ese producto
         const colors = union(rows.map((r) => norm(r.Color)));
         const materials = union(rows.map((r) => norm(r.Material)));
         const measures = union(rows.map((r) => norm(r.Medidas)));
         const first = rows[0];
 
-        const { cat, sub } = splitCategoria(first.Categoria);
+        // Validar Categoría/Subcategoría (obligatorio)
+        const catSub = getCatSub(first.Categoria, first.Subcategoria);
+        if (!catSub) {
+          invalid.push({
+            name,
+            reason:
+              "Falta Categoría y/o Subcategoría. Usá columnas 'Categoria' + 'Subcategoria' o 'Categoria/Subcategoria' en 'Categoria'.",
+          });
+          continue; // salteamos este producto
+        }
+        const { cat, sub } = catSub;
+
         const price = toInt(first.Precio);
         const supplier = norm(first.Proveedor) ?? "";
 
+        // Transacción por producto: asegura cat/sub y crea el producto
         await db.$transaction(async (tx) => {
-          // A) Category por name (único)
-          let category = await tx.category.findUnique({
-            where: { name: cat }, // name @unique
+          // A) Category (insensitive). Usamos findFirst para evitar issues de casing.
+          let category = await tx.category.findFirst({
+            where: {
+              name: { equals: cat, mode: Prisma.QueryMode.insensitive },
+            },
             select: { id: true },
           });
           if (!category) {
-            category = await tx.category.create({
-              data: { name: cat }, // si manejás slug, agregalo acá
-              select: { id: true },
-            });
+            try {
+              category = await tx.category.create({
+                data: { name: cat },
+                select: { id: true },
+              });
+            } catch (e: unknown) {
+              // Si otro proceso la creó con distinto casing, re-leemos
+              if (
+                e instanceof Prisma.PrismaClientKnownRequestError &&
+                e.code === "P2002"
+              ) {
+                category = await tx.category.findFirst({
+                  where: {
+                    name: { equals: cat, mode: Prisma.QueryMode.insensitive },
+                  },
+                  select: { id: true },
+                });
+              } else {
+                throw e;
+              }
+            }
           }
 
-          // B) Subcategory por (categoryId, name)
-          // Si tenés @@unique([categoryId, name]) usá upsert; si no, findFirst + create.
+          if (!category) {
+            // fallback extremo
+            throw new Error("No se pudo asegurar la categoría");
+          }
+
+          // B) Subcategory (insensitive dentro de la categoría)
           let subcategory = await tx.subcategory.findFirst({
             where: {
               categoryId: category.id,
-              name: { equals: sub, mode: "insensitive" },
+              name: { equals: sub, mode: Prisma.QueryMode.insensitive },
             },
             select: { id: true },
           });
           if (!subcategory) {
-            subcategory = await tx.subcategory.create({
-              data: { categoryId: category.id, name: sub }, // si manejás slug, agregalo acá
-              select: { id: true },
-            });
+            try {
+              subcategory = await tx.subcategory.create({
+                data: { categoryId: category.id, name: sub },
+                select: { id: true },
+              });
+            } catch (e: unknown) {
+              // Si existe por unique compuesto (si lo tenés) o se creó en paralelo
+              if (
+                e instanceof Prisma.PrismaClientKnownRequestError &&
+                e.code === "P2002"
+              ) {
+                subcategory = await tx.subcategory.findFirst({
+                  where: {
+                    categoryId: category.id,
+                    name: { equals: sub, mode: Prisma.QueryMode.insensitive },
+                  },
+                  select: { id: true },
+                });
+              } else {
+                throw e;
+              }
+            }
           }
 
-          // C) Crear product (name es @unique → si otro proceso lo creó, puede tirar conflicto)
+          if (!subcategory) {
+            throw new Error("No se pudo asegurar la subcategoría");
+          }
+
+          // C) Crear Product (name @unique)
           try {
             await tx.product.create({
               data: {
@@ -271,24 +345,14 @@ export const productsRouter = createTRPCRouter({
             });
             created++;
           } catch (e: unknown) {
-            if (e instanceof Prisma.PrismaClientKnownRequestError) {
-              // P2002 = violación de índice único (p. ej., name @unique)
-              if (e.code === "P2002") {
-                // ya existe → lo ignoramos (no incrementamos `created`)
-                // opcional: log suave
-                console.warn(
-                  "[products.createNewFromRows] Producto duplicado (unique):",
-                  name
-                );
-                return; // o sigue con la próxima fila
-              }
-
-              console.error(
-                "[products.createNewFromRows] Prisma error",
-                e.code,
-                e.meta ?? ""
-              );
+            if (
+              e instanceof Prisma.PrismaClientKnownRequestError &&
+              e.code === "P2002"
+            ) {
+              // Otro proceso lo creó entre que filtramos y creamos → ignoramos
+              // (no incrementamos created)
             } else if (e instanceof Error) {
+              // Log suave y seguimos con el resto
               console.error("[products.createNewFromRows] Error:", e.message);
             } else {
               console.error(
@@ -303,7 +367,9 @@ export const productsRouter = createTRPCRouter({
       return {
         ok: true as const,
         created,
-        skippedExisting: allNames.length - created,
+        skippedExisting: allNames.length - created - invalid.length,
+        skippedInvalid: invalid.length,
+        invalid, // útil para mostrar detalle en UI
       };
     }),
 });
