@@ -43,7 +43,7 @@ ImageUploadProps) => {
           maxFileSize: 25 * 1024 * 1024,
           multiple: true,
         }}
-        uploadPreset="zvv5vzb4"
+        uploadPreset="horse_brand"
       >
         <div className="p-6 border-4 border-dashed border-gray-300 rounded-lg hover:opacity-75 transition flex flex-col space-y-2 items-center justify-center cursor-pointer">
           <div className="relative">
