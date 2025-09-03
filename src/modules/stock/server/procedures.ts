@@ -12,83 +12,35 @@ import { stockInsertSchema } from "../schemas";
 import { Prisma } from "@prisma/client";
 
 export const stockRouter = createTRPCRouter({
-  // createOrUpdate: protectedProcedure
-  //   .input(stockInsertSchema)
-  //   .mutation(async ({ input }) => {
-  //     const { productId, warehouseId, attributes, quantity, sku } = input;
-
-  //     let productVariant = await db.productVariant.findFirst({
-  //       where: {
-  //         productId,
-  //         attributes: {
-  //           equals: attributes,
-  //         },
-  //       },
-  //     });
-
-  //     if (!productVariant) {
-  //       productVariant = await db.productVariant.create({
-  //         data: {
-  //           productId,
-  //           attributes,
-  //           sku,
-  //         },
-  //       });
-  //     }
-
-  //     let stock = await db.stock.findFirst({
-  //       where: {
-  //         productVariantId: productVariant.id,
-  //         warehouseId,
-  //       },
-  //     });
-
-  //     if (stock) {
-  //       stock = await db.stock.update({
-  //         where: { id: stock.id },
-  //         data: {
-  //           quantity: stock.quantity + quantity,
-  //         },
-  //       });
-  //     } else {
-  //       stock = await db.stock.create({
-  //         data: {
-  //           productVariantId: productVariant.id,
-  //           warehouseId,
-  //           quantity,
-  //           productId,
-  //         },
-  //       });
-  //     }
-
-  //     return stock;
-  //   }),
-
   create: protectedProcedure
     .input(stockInsertSchema)
     .mutation(async ({ input }) => {
-      const { id, productId, warehouseId, attributes, quantity, sku } = input;
+      const {
+        id,
+        productId,
+        warehouseId,
+        quantity,
+        sku,
+        color,
+        material,
+        measure,
+      } = input;
 
       if (id) {
-        // Si viene id, editar directamente el stock (NO sumar, actualizar a la cantidad)
+        // Editar stock existente
         return db.stock.update({
           where: { id },
-          data: {
-            quantity, // PONE la cantidad nueva, NO suma
-            // Si querés permitir editar la variante también:
-            // productVariantId: ..., // requeriría más lógica
-          },
+          data: { quantity },
         });
       }
 
-      // --- FLUJO DE CREAR ---
-
+      // Buscar variante concreta por columnas
       let productVariant = await db.productVariant.findFirst({
         where: {
           productId,
-          attributes: {
-            equals: attributes, // attributes es tu objeto { size: "L", colors: "Rojo" }
-          },
+          color,
+          material,
+          measure,
         },
       });
 
@@ -96,12 +48,15 @@ export const stockRouter = createTRPCRouter({
         productVariant = await db.productVariant.create({
           data: {
             productId,
-            attributes,
+            color,
+            material,
+            measure,
             sku,
           },
         });
       }
 
+      // Buscar stock de esa variante en ese depósito
       let stock = await db.stock.findFirst({
         where: {
           productVariantId: productVariant.id,
@@ -110,7 +65,7 @@ export const stockRouter = createTRPCRouter({
       });
 
       if (stock) {
-        // Suma cantidad si ya existe (caso "entrada")
+        // Sumar cantidad
         stock = await db.stock.update({
           where: { id: stock.id },
           data: {

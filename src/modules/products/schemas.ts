@@ -13,5 +13,5 @@ export const productsInsertSchema = z.object({
 });
 
 export const productsUpdateSchema = productsInsertSchema.extend({
-  id: z.string(),
+  id: z.string().optional(),
 });

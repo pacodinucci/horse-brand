@@ -36,24 +36,15 @@ type ProductForStockForm = {
   categoryId: string;
   subCategoryId: string;
   images: string[];
-  //   attributes: Record<string, string[]> | null | undefined;
-  attributes: unknown;
+  // NUEVO: propiedades reales en Product
+  colors?: string[];
+  materials?: string[];
+  measures?: string[];
   createdAt: string;
   updatedAt: string;
-  category: {
-    id: string;
-    name: string;
-  };
-  subCategory: {
-    id: string;
-    name: string;
-  };
+  category: { id: string; name: string };
+  subCategory: { id: string; name: string };
 };
-
-// type WarehouseForStockForm = {
-//   id: string;
-//   name: string;
-// };
 
 export interface StockFormProps {
   onSuccess?: () => void;
@@ -63,7 +54,10 @@ export interface StockFormProps {
     productId: string;
     warehouseId: string;
     quantity: number;
-    attributes?: Record<string, string>;
+    // NUEVO: valores seleccionados (opcionales)
+    color?: string;
+    material?: string;
+    measure?: string;
   };
 }
 
@@ -76,7 +70,7 @@ export const StockForm = ({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  // Traé los productos y depósitos (warehouses)
+  // Productos y depósitos
   const { data: productsData } = useSuspenseQuery(
     trpc.products.getMany.queryOptions({})
   );
@@ -84,7 +78,6 @@ export const StockForm = ({
     trpc.warehouse.getMany.queryOptions({})
   );
 
-  // Estado y búsqueda tipados
   const [selectedProduct, setSelectedProduct] = useState<
     ProductForStockForm | undefined
   >(undefined);
@@ -98,11 +91,14 @@ export const StockForm = ({
       productId: initialValues?.productId ?? "",
       warehouseId: initialValues?.warehouseId ?? "",
       quantity: initialValues?.quantity ?? 0,
-      attributes: initialValues?.attributes ?? {},
+      // NUEVO: reemplaza attributes.* por campos planos
+      color: initialValues?.color ?? "",
+      material: initialValues?.material ?? "",
+      measure: initialValues?.measure ?? "",
     },
   });
 
-  // Seleccioná el producto cuando cambia el id
+  // Actualiza el producto seleccionado cuando cambia productId
   useEffect(() => {
     const idActual = form.watch("productId") || initialValues?.productId;
     const found = productsData?.items.find((p) => p.id === idActual);
@@ -119,9 +115,7 @@ export const StockForm = ({
         router.push("/backoffice/stock");
         onSuccess?.();
       },
-      onError: (error) => {
-        toast.error(error.message);
-      },
+      onError: (error) => toast.error(error.message),
     })
   );
 
@@ -134,30 +128,19 @@ export const StockForm = ({
         router.push("/backoffice/stock");
         onSuccess?.();
       },
-      onError: (error) => {
-        toast.error(error.message);
-      },
+      onError: (error) => toast.error(error.message),
     })
   );
 
   const isPending = createStock.isPending;
 
-  // const onSubmit = form.handleSubmit((values) => {
-  //   createStock.mutate({
-  //     ...values,
-  //     quantity: Number(values.quantity),
-  //   });
-  // });
-
   const onSubmit = form.handleSubmit((values) => {
+    // Enviá color/material/measure en lugar de attributes
     if (isEdit && initialValues?.id) {
       updateStock.mutate({
         ...values,
         id: initialValues.id,
-        // warehouseId: values.warehouseId,
-        // quantity: Number(values.quantity),
-        // sku: values.sku,
-        // attributes: values.attributes,
+        quantity: Number(values.quantity),
       });
     } else {
       createStock.mutate({
@@ -167,41 +150,42 @@ export const StockForm = ({
     }
   });
 
-  // Atributos dinámicos según el producto seleccionado
-  const renderAttributes = () => {
-    if (!selectedProduct?.attributes) return null;
-    return Object.entries(selectedProduct.attributes).map(
-      ([attrKey, options]) => (
-        <FormField
-          key={attrKey}
-          name={`attributes.${attrKey}`}
-          control={form.control}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{attrKey}</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value || ""}
-                  onValueChange={field.onChange}
-                  disabled={isPending}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={`Seleccionar ${attrKey}`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {options.map((option: string) => (
-                      <SelectItem value={option} key={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )
+  // NUEVO: selects individuales de color/material/measure
+  const renderOptions = (
+    fieldName: "color" | "material" | "measure",
+    label: string,
+    options?: string[]
+  ) => {
+    if (!options || options.length === 0) return null;
+    return (
+      <FormField
+        name={fieldName}
+        control={form.control}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{label}</FormLabel>
+            <FormControl>
+              <Select
+                value={field.value || ""}
+                onValueChange={field.onChange}
+                disabled={isPending}
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder={`Seleccionar ${label}`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {options.map((opt) => (
+                    <SelectItem value={opt} key={opt}>
+                      {opt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     );
   };
 
@@ -221,8 +205,14 @@ export const StockForm = ({
                   onValueChange={(value) => {
                     field.onChange(value);
                     setSelectedProduct(
-                      productsData?.items.find((p) => p.id === value)
+                      productsData?.items.find(
+                        (p: ProductForStockForm) => p.id === value
+                      )
                     );
+                    // Reset de selecciones al cambiar producto
+                    form.setValue("color", "");
+                    form.setValue("material", "");
+                    form.setValue("measure", "");
                   }}
                   disabled={isPending}
                 >
@@ -230,7 +220,7 @@ export const StockForm = ({
                     <SelectValue placeholder="Seleccionar producto" />
                   </SelectTrigger>
                   <SelectContent>
-                    {productsData?.items.map((p) => (
+                    {productsData?.items.map((p: ProductForStockForm) => (
                       <SelectItem key={p.id} value={p.id}>
                         {p.name}
                       </SelectItem>
@@ -243,7 +233,7 @@ export const StockForm = ({
           )}
         />
 
-        {/* Warehouse */}
+        {/* Depósito */}
         <FormField
           name="warehouseId"
           control={form.control}
@@ -260,11 +250,13 @@ export const StockForm = ({
                     <SelectValue placeholder="Seleccionar depósito" />
                   </SelectTrigger>
                   <SelectContent>
-                    {warehousesData?.items.map((w) => (
-                      <SelectItem key={w.id} value={w.id}>
-                        {w.name}
-                      </SelectItem>
-                    ))}
+                    {warehousesData?.items.map(
+                      (w: { id: string; name: string }) => (
+                        <SelectItem key={w.id} value={w.id}>
+                          {w.name}
+                        </SelectItem>
+                      )
+                    )}
                   </SelectContent>
                 </Select>
               </FormControl>
@@ -273,8 +265,10 @@ export const StockForm = ({
           )}
         />
 
-        {/* Atributos dinámicos */}
-        {renderAttributes()}
+        {/* NUEVO: selects por color/material/medida a partir del Product */}
+        {renderOptions("color", "Color", selectedProduct?.colors)}
+        {renderOptions("material", "Material", selectedProduct?.materials)}
+        {renderOptions("measure", "Medida", selectedProduct?.measures)}
 
         {/* Cantidad */}
         <FormField
@@ -288,9 +282,7 @@ export const StockForm = ({
                   type="number"
                   min={0}
                   {...field}
-                  onChange={(e) => {
-                    field.onChange(Number(e.target.value));
-                  }}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
                   className="bg-white"
                 />
               </FormControl>

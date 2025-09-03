@@ -34,16 +34,9 @@ import { SubcategoryGetOne } from "@/modules/subcategory/types";
 import { ImageUpload } from "@/components/image-upload";
 import Image from "next/image";
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AttributeInput } from "./attribute-input";
 import { Checkbox } from "@/components/ui/checkbox";
-
-const ATTRIBUTES = [
-  { key: "colors", label: "Color" },
-  // { key: "size", label: "Talle" },
-  { key: "material", label: "Material" },
-  { key: "dimensions", label: "Dimensiones" },
-];
 
 export interface ProductFormProps {
   onSuccess?: () => void;
@@ -54,8 +47,13 @@ export interface ProductFormProps {
     categoryId: string;
     subCategoryId: string;
     images?: string[];
-    attributes?: Record<string, string[]>;
+    // reemplaza attributes por campos reales:
+    colors?: string[];
+    materials?: string[];
+    measures?: string[];
     price: number;
+    // si en tu modelo usás supplier, podés incluirlo aquí:
+    supplier?: string;
   };
 }
 
@@ -68,19 +66,16 @@ export const ProductForm = ({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const [activeAttributes, setActiveAttributes] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (initialValues?.attributes) {
-      setActiveAttributes(
-        Object.keys(initialValues.attributes).filter(
-          (key) =>
-            Array.isArray(initialValues.attributes?.[key]) &&
-            initialValues.attributes?.[key].length > 0
-        )
-      );
-    }
-  }, [initialValues]);
+  // Checkboxes individuales (sin ATTRIBUTES)
+  const [showColors, setShowColors] = useState<boolean>(
+    (initialValues?.colors?.length ?? 0) > 0
+  );
+  const [showMaterials, setShowMaterials] = useState<boolean>(
+    (initialValues?.materials?.length ?? 0) > 0
+  );
+  const [showMeasures, setShowMeasures] = useState<boolean>(
+    (initialValues?.measures?.length ?? 0) > 0
+  );
 
   // Consulta categorías y subcategorías
   const { data: categories } = useSuspenseQuery(
@@ -91,7 +86,6 @@ export const ProductForm = ({
   );
 
   const createProduct = useMutation(
-    // @ts-expect-error Type instantiation is excessively deep and possibly infinite
     trpc.products.create.mutationOptions({
       onSuccess: async () => {
         await queryClient.invalidateQueries(
@@ -128,27 +122,61 @@ export const ProductForm = ({
 
   const isEdit = !!initialValues?.id;
 
+  const unionSchema = productsInsertSchema.or(productsUpdateSchema);
+
   const form = useForm({
-    resolver: zodResolver(productsInsertSchema),
+    resolver: zodResolver(unionSchema),
     defaultValues: {
       name: initialValues?.name ?? "",
       categoryId: initialValues?.categoryId ?? "",
       subCategoryId: initialValues?.subCategoryId ?? "",
       images: initialValues?.images ?? [],
-      attributes: initialValues?.attributes ?? {},
+      colors: initialValues?.colors ?? [],
+      materials: initialValues?.materials ?? [],
+      measures: initialValues?.measures ?? [],
       price: initialValues?.price ?? 0,
+      supplier: initialValues?.supplier ?? "",
+      ...(initialValues?.id ? { id: initialValues.id } : {}),
     },
   });
+
+  // const form = useForm<
+  //   z.infer<typeof productsInsertSchema | typeof productsUpdateSchema>
+  // >({
+  //   resolver: zodResolver(productsInsertSchema),
+  //   defaultValues: {
+  //     name: initialValues?.name ?? "",
+  //     categoryId: initialValues?.categoryId ?? "",
+  //     subCategoryId: initialValues?.subCategoryId ?? "",
+  //     images: initialValues?.images ?? [],
+  //     // campos reales:
+  //     colors: initialValues?.colors ?? [],
+  //     materials: initialValues?.materials ?? [],
+  //     measures: initialValues?.measures ?? [],
+  //     price: initialValues?.price ?? 0,
+  //     // opcional:
+  //     // @ts-ignore si no existe en tu schema, simplemente quítalo
+  //     supplier: initialValues?.supplier ?? "",
+  //   } as any,
+  // });
 
   const isPending = createProduct.isPending || updateProduct.isPending;
 
   const onSubmit = (
     values: z.infer<typeof productsInsertSchema | typeof productsUpdateSchema>
   ) => {
+    // Si un toggle está en off, mandamos []
+    const payload = {
+      ...values,
+      colors: showColors ? values.colors ?? [] : [],
+      materials: showMaterials ? values.materials ?? [] : [],
+      measures: showMeasures ? values.measures ?? [] : [],
+    };
+
     if (isEdit && initialValues?.id) {
-      updateProduct.mutate({ ...values, id: initialValues.id });
+      updateProduct.mutate({ ...payload, id: initialValues.id });
     } else {
-      createProduct.mutate(values);
+      createProduct.mutate(payload);
     }
   };
 
@@ -167,6 +195,7 @@ export const ProductForm = ({
           console.log("ERRORES", err)
         )}
       >
+        {/* Nombre */}
         <FormField
           name="name"
           control={form.control}
@@ -184,6 +213,8 @@ export const ProductForm = ({
             </FormItem>
           )}
         />
+
+        {/* Categoría / Subcategoría */}
         <div className="flex gap-x-40 items-center">
           <FormField
             name="categoryId"
@@ -213,6 +244,7 @@ export const ProductForm = ({
               </FormItem>
             )}
           />
+
           <FormField
             name="subCategoryId"
             control={form.control}
@@ -242,59 +274,126 @@ export const ProductForm = ({
             )}
           />
         </div>
+
+        {/* Atributos reales con toggles individuales */}
         <div className="p-4 rounded-md bg-[var(--var-blue-grey)]/10">
           <div className="flex flex-col gap-y-1 mb-4">
             <p className="text-sm">Atributos del producto</p>
             <p className="text-xs text-neutral-600">
-              Seleccionar solo los que corresponden
+              Activá sólo los que correspondan
             </p>
           </div>
-          {ATTRIBUTES.map((attr) => (
-            <div
-              key={attr.key}
-              className="mb-4 flex justify-center flex-col gap-2"
-            >
-              <div className="flex gap-x-2 items-center">
-                <Checkbox
-                  checked={activeAttributes.includes(attr.key)}
-                  onCheckedChange={(checked) => {
-                    setActiveAttributes((current) => {
-                      if (checked) {
-                        return [...current, attr.key];
-                      } else {
-                        const attrs = { ...form.getValues("attributes") };
-                        delete attrs[attr.key];
-                        form.setValue("attributes", attrs);
-                        return current.filter((k) => k !== attr.key);
-                      }
-                    });
-                  }}
-                  className="bg-white data-[state=checked]:bg-[var(--var-brown)] data-[state=checked]:border-[var(--var-brown)]"
-                  id={`checkbox-${attr.key}`}
-                />
-                <label
-                  htmlFor={`checkbox-${attr.key}`}
-                  className="text-sm cursor-pointer select-none"
-                >
-                  {attr.label}
-                </label>
-              </div>
-              {activeAttributes.includes(attr.key) && (
-                <FormField
-                  name={`attributes.${attr.key}`}
-                  control={form.control}
-                  render={({ field }) => (
-                    <AttributeInput
-                      label={attr.label}
-                      values={field.value ?? []}
-                      onChange={field.onChange}
-                    />
-                  )}
-                />
-              )}
+
+          {/* Colors */}
+          <div className="mb-4 flex flex-col gap-2">
+            <div className="flex gap-x-2 items-center">
+              <Checkbox
+                id="chk-colors"
+                checked={showColors}
+                onCheckedChange={(c) => {
+                  const checked = Boolean(c);
+                  setShowColors(checked);
+                  if (!checked) form.setValue("colors", []);
+                }}
+                className="bg-white data-[state=checked]:bg-[var(--var-brown)] data-[state=checked]:border-[var(--var-brown)]"
+              />
+              <label
+                htmlFor="chk-colors"
+                className="text-sm cursor-pointer select-none"
+              >
+                Colores
+              </label>
             </div>
-          ))}
+
+            {showColors && (
+              <FormField
+                name="colors"
+                control={form.control}
+                render={({ field }) => (
+                  <AttributeInput
+                    label="Colores"
+                    values={(field.value as string[]) ?? []}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            )}
+          </div>
+
+          {/* Materials */}
+          <div className="mb-4 flex flex-col gap-2">
+            <div className="flex gap-x-2 items-center">
+              <Checkbox
+                id="chk-materials"
+                checked={showMaterials}
+                onCheckedChange={(c) => {
+                  const checked = Boolean(c);
+                  setShowMaterials(checked);
+                  if (!checked) form.setValue("materials", []);
+                }}
+                className="bg-white data-[state=checked]:bg-[var(--var-brown)] data-[state=checked]:border-[var(--var-brown)]"
+              />
+              <label
+                htmlFor="chk-materials"
+                className="text-sm cursor-pointer select-none"
+              >
+                Materiales
+              </label>
+            </div>
+
+            {showMaterials && (
+              <FormField
+                name="materials"
+                control={form.control}
+                render={({ field }) => (
+                  <AttributeInput
+                    label="Materiales"
+                    values={(field.value as string[]) ?? []}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            )}
+          </div>
+
+          {/* Measures */}
+          <div className="mb-4 flex flex-col gap-2">
+            <div className="flex gap-x-2 items-center">
+              <Checkbox
+                id="chk-measures"
+                checked={showMeasures}
+                onCheckedChange={(c) => {
+                  const checked = Boolean(c);
+                  setShowMeasures(checked);
+                  if (!checked) form.setValue("measures", []);
+                }}
+                className="bg-white data-[state=checked]:bg-[var(--var-brown)] data-[state=checked]:border-[var(--var-brown)]"
+              />
+              <label
+                htmlFor="chk-measures"
+                className="text-sm cursor-pointer select-none"
+              >
+                Medidas
+              </label>
+            </div>
+
+            {showMeasures && (
+              <FormField
+                name="measures"
+                control={form.control}
+                render={({ field }) => (
+                  <AttributeInput
+                    label="Medidas"
+                    values={(field.value as string[]) ?? []}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            )}
+          </div>
         </div>
+
+        {/* Precio */}
         <FormField
           name="price"
           control={form.control}
@@ -311,10 +410,10 @@ export const ProductForm = ({
                   placeholder="Precio"
                   className="bg-white"
                   onChange={(e) => {
-                    // Solo acepta enteros
+                    // Solo enteros
                     const val =
                       e.target.value === "" ? "" : parseInt(e.target.value, 10);
-                    field.onChange(isNaN(val as number) ? "" : val);
+                    field.onChange(Number.isNaN(val as number) ? "" : val);
                   }}
                 />
               </FormControl>
@@ -322,6 +421,8 @@ export const ProductForm = ({
             </FormItem>
           )}
         />
+
+        {/* Imágenes */}
         <FormField
           name="images"
           control={form.control}
@@ -331,25 +432,20 @@ export const ProductForm = ({
               <div className="flex flex-wrap gap-2 max-w-[460px]">
                 {(field.value ?? []).map((imgUrl: string, idx: number) => (
                   <div key={imgUrl + idx} className="relative w-20 h-20">
-                    {/* <img
-                      src={imgUrl}
-                      alt={`Imagen ${idx + 1}`}
-                      className="object-cover w-20 h-20"
-                    /> */}
                     <Image
                       src={imgUrl}
                       alt={`Imagen ${idx + 1}`}
-                      width={80} // w-20 = 80px
+                      width={80}
                       height={80}
                       className="object-cover w-20 h-20 rounded"
-                      style={{ width: 80, height: 80 }} // Para evitar warnings con layout
+                      style={{ width: 80, height: 80 }}
                     />
                     <button
                       type="button"
                       className="absolute top-0 right-0 bg-[var(--var-red)] text-white rounded-full w-5 h-5 p-1 flex items-center justify-center"
                       onClick={() => {
                         const updated = (field.value ?? []).filter(
-                          (_, i) => i !== idx
+                          (_: string, i: number) => i !== idx
                         );
                         field.onChange(updated);
                       }}
@@ -359,7 +455,7 @@ export const ProductForm = ({
                     </button>
                   </div>
                 ))}
-                {/* Botón de agregar imagen */}
+                {/* Agregar imagen */}
                 <div className="w-20 h-20 flex items-center justify-center">
                   <ImageUpload
                     key={(field.value ?? []).length}
