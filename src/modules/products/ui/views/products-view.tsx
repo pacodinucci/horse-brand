@@ -7,12 +7,18 @@ import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { columns } from "../components/columns";
 import { useRouter } from "next/navigation";
+import { useProductsFilters } from "../../hooks/use-products-filters";
+import { DataPagination } from "../components/data-pagination";
 // import { DataPagination } from "@/components/data-pagination";
 
 export const ProductsView = () => {
   const router = useRouter();
+  const [filters, setFilters] = useProductsFilters();
+
   const trpc = useTRPC();
-  const { data } = useSuspenseQuery(trpc.products.getMany.queryOptions({}));
+  const { data } = useSuspenseQuery(
+    trpc.products.getMany.queryOptions({ ...filters })
+  );
 
   return (
     <div className="flex-1 pb-4 px-4 md:px-8 flex flex-col gap-y-4">
@@ -21,7 +27,11 @@ export const ProductsView = () => {
         columns={columns}
         onRowClick={(row) => router.push(`/backoffice/products/${row.id}`)}
       />
-      {/* <DataPagination /> */}
+      <DataPagination
+        page={filters.page}
+        totalPages={data.totalPages}
+        onPageChange={(page) => setFilters({ page })}
+      />
     </div>
   );
 };
