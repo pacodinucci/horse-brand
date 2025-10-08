@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { ProductGallery } from "../components/product-gallery";
 import { ProductDetails } from "../components/product-details";
-import { CartButton } from "../components/cart-button";
+// import { CartButton } from "../components/cart-button";
 
 export const LandingView = () => {
   const trpc = useTRPC();
@@ -28,9 +28,9 @@ export const LandingView = () => {
 
   return (
     <div className="flex gap-16 min-h-screen px-8 py-6 relative">
-      <div className="absolute top-5 right-5">
+      {/* <div className="absolute top-5 right-5">
         <CartButton />
-      </div>
+      </div> */}
       <div>
         <Select
           value={selectedProductId}

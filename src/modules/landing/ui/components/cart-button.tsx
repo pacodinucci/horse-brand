@@ -35,10 +35,10 @@ export function CartButton() {
       onMouseLeave={handleMouseLeave}
     >
       {/* Botón carrito */}
-      <button className="relative flex items-center">
-        <ShoppingCart className="w-7 h-7 text-neutral-700" />
+      <button className="relative flex items-center bg-neutral-900 rounded-full p-3">
+        <ShoppingCart className="w-5 h-5 text-neutral-200" />
         {totalItems > 0 && (
-          <span className="absolute -top-2 -right-2 text-xs font-bold bg-[var(--var-brown)] text-white rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="absolute -top-2 -right-2 text-xs font-bold bg-[var(--var-brown-gold)] text-white rounded-full w-5 h-5 flex items-center justify-center">
             {totalItems}
           </span>
         )}
