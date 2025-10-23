@@ -27,7 +27,7 @@ export const HeroBanner = ({
 }: HeroBannerProps) => {
   return (
     <section
-      className="relative w-full h-[95vh] min-h-[480px] max-h-[820px] overflow-hidden"
+      className="relative w-full h-[95svh] min-h-[480px] max-h-[820px] overflow-hidden"
       aria-label="Hero banner"
     >
       {/* Imagen de fondo */}
