@@ -230,6 +230,7 @@ export function Footer({
           src={"/logos/HB main positivo.svg"}
           width={80}
           height={0}
+          className="block md:hidden"
         />
 
         <p className="text-[11px] text-neutral-600">
