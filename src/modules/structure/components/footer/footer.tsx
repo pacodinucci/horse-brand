@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import {
   PiInstagramLogoLight as Instagram,
   PiFacebookLogoLight as Facebook,
+  PiPlus,
+  PiMinus,
 } from "react-icons/pi";
 import {
   Accordion,
@@ -81,9 +83,34 @@ export function Footer({
               className="border-none"
             >
               {/* Título clickeable */}
-              <AccordionTrigger className="no-underline hover:no-underline py-0 cursor-pointer">
+              {/* <AccordionTrigger className="no-underline hover:no-underline py-0 cursor-pointer">
                 <h3 className="text-base tracking-[0.18em] uppercase flex items-center justify-between gap-2">
                   {m.title} <span className="text-[13px]">+</span>
+                </h3>
+              </AccordionTrigger> */}
+
+              <AccordionTrigger className="no-underline hover:no-underline py-0 cursor-pointer w-full group">
+                <h3
+                  className="
+                    text-base tracking-[0.18em] uppercase flex items-center gap-2 
+                    justify-between md:justify-start w-full
+                  "
+                >
+                  {m.title}
+
+                  <span
+                    className="text-[13px] ml-auto md:ml-2 group-data-[state=open]:hidden"
+                    aria-hidden="true"
+                  >
+                    <PiPlus />
+                  </span>
+
+                  <span
+                    className="text-[13px] ml-auto md:ml-2 hidden group-data-[state=open]:inline"
+                    aria-hidden="true"
+                  >
+                    <PiMinus />
+                  </span>
                 </h3>
               </AccordionTrigger>
 
