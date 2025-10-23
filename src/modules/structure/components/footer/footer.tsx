@@ -82,7 +82,7 @@ export function Footer({
             >
               {/* Título clickeable */}
               <AccordionTrigger className="no-underline hover:no-underline py-0 cursor-pointer">
-                <h3 className="text-base tracking-[0.18em] uppercase flex items-center gap-2">
+                <h3 className="text-base tracking-[0.18em] uppercase flex items-center justify-between gap-2">
                   {m.title} <span className="text-[13px]">+</span>
                 </h3>
               </AccordionTrigger>

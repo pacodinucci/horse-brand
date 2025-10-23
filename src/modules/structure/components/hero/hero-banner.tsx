@@ -71,8 +71,8 @@ export const HeroBanner = ({
       <div
         className={[
           "absolute inset-0 will-change-transform",
-          isMobile ? "transition-transform duration-200 ease-out" : "",
-          isMobile && scrolled ? "scale-105" : "scale-100",
+          isMobile ? "transition-transform duration-300 ease-out" : "",
+          isMobile && scrolled ? "scale-110" : "scale-100",
         ].join(" ")}
         aria-hidden="true"
       >
