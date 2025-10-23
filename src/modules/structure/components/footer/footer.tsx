@@ -1,8 +1,9 @@
 // components/layout/Footer.tsx
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -69,8 +70,9 @@ export function Footer({
       {/* Menús superiores */}
       <div className="w-full px-4 py-6">
         <Accordion
-          type="multiple" // podés abrir varios a la vez
-          className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-24"
+          type="multiple"
+          // className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-24"
+          className="grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-24"
         >
           {MENUS.map((m, i) => (
             <AccordionItem
@@ -195,6 +197,13 @@ export function Footer({
         >
           Su ubicación : {locationLabel} <span className="text-[13px]">›</span>
         </Link> */}
+
+        <Image
+          alt="Horse Brand Logo"
+          src={"/logos/HB main positivo.svg"}
+          width={80}
+          height={0}
+        />
 
         <p className="text-[11px] text-neutral-600">
           © Horse-Brand {year}. Todos los derechos reservados.
