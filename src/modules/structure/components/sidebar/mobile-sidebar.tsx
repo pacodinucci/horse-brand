@@ -45,7 +45,7 @@ export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
       {/* Panel: full width desde la izquierda */}
       <aside
         className={`absolute left-0 top-0 h-full w-full
-        bg-zinc-50 text-neutral-800 shadow-xl
+        bg-zinc-50 text-neutral-700 shadow-xl
         transition-all duration-300 ease-out
         ${open ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"} ${
           poppins.className
@@ -81,7 +81,7 @@ export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
                     aria-controls={`panel-${it.key}`}
                     onClick={() => toggle(it.key)}
                     className={`
-                        w-full flex items-center justify-between py-3 uppercase tracking-wider
+                        w-full flex items-center justify-between py-2 uppercase tracking-wider
                         transition-all duration-500
                         ${isOpen ? "text-lg font-medium" : "text-xs"}
                     `}
@@ -96,12 +96,22 @@ export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
                     />
                   </button>
 
+                  {/* Línea animada bajo el título */}
+                  <div
+                    className={`
+                        h-[2px] bg-neutral-700
+                        transition-[width,opacity] duration-500 ease-out
+                        ${isOpen ? "w-[75%] opacity-100" : "w-0 opacity-60"}
+                    `}
+                    aria-hidden="true"
+                  />
+
                   <AccordionItem
                     id={`panel-${it.key}`}
                     labelledBy={`btn-${it.key}`}
                     open={isOpen}
                   >
-                    <ul className="pl-2 pb-2 space-y-2">
+                    <ul className="mt-2 pl-2 pb-2 space-y-2">
                       {section?.links?.map((l) => (
                         <li key={l.label}>
                           <a
