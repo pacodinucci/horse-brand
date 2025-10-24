@@ -7,6 +7,7 @@ import { TbMessageDots } from "react-icons/tb";
 
 import { MENU_DATA, MENU_KEYS } from "@/lib/data";
 import { poppins } from "@/lib/fonts";
+import Image from "next/image";
 
 interface MobileSidebarProps {
   open: boolean;
@@ -73,6 +74,7 @@ export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
             {items.map((it) => {
               const isOpen = openKey === it.key;
               const section = MENU_DATA[it.key];
+              const img = section?.image;
               return (
                 <div key={it.key}>
                   <button
@@ -116,13 +118,32 @@ export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
                         <li key={l.label}>
                           <a
                             href={l.href}
-                            className="block text-[11px] normal-case tracking-normal text-neutral-700 hover:text-neutral-900"
+                            className="block text-xs uppercase tracking-normal text-neutral-700 hover:text-neutral-900"
                           >
                             {l.label}
                           </a>
                         </li>
                       ))}
                     </ul>
+                    {img?.src && (
+                      <figure className="relative w-[240px] h-[140px] overflow-hidden">
+                        <Image
+                          src={img.src}
+                          alt={img.alt ?? it.label}
+                          width={400} // doble del render para buena nitidez
+                          height={0}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          priority={false}
+                          sizes="200px"
+                        />
+                        {img.caption && (
+                          <figcaption className="absolute bottom-1 right-1 text-[9px] font-semibold text-white bg-black/60 px-1.5 py-0.5">
+                            {img.caption}
+                          </figcaption>
+                        )}
+                      </figure>
+                    )}
                   </AccordionItem>
                 </div>
               );
