@@ -28,17 +28,18 @@ export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
       {/* Overlay (queda tapado si el panel ocupa todo el ancho, lo dejo por consistencia) */}
       <div
         onClick={onClose}
-        className={`absolute inset-0 bg-black/10 transition-opacity ${
-          open ? "opacity-100" : "opacity-0"
-        }`}
+        className={`absolute inset-0 bg-white/40
+              transition-opacity duration-700 ease-out
+              will-change-[opacity]
+              ${open ? "opacity-100" : "opacity-0"}`}
       />
 
       {/* Panel: full width y animación desde la izquierda */}
       <aside
         className={`absolute left-0 top-0 h-full w-full
         bg-[#F6F0E7] text-neutral-900 shadow-xl
-        transition-transform duration-300 ease-out
-        ${open ? "translate-x-0" : "-translate-x-full"}`}
+        transition-all duration-300 ease-out
+        ${open ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"}`}
         role="dialog"
         aria-modal="true"
         aria-label="Menú de colecciones"
