@@ -1,3 +1,5 @@
+import { MenuSection } from "@/modules/structure/components/navbar/menu-section";
+
 export const mueblesLiving = {
   eyebrow: "COLECCIÓN LIVING",
   title: "Texturas nobles para tu casa",
@@ -89,3 +91,91 @@ export const carterasBolsos = {
     },
   ],
 };
+
+export type SectionData = Parameters<typeof MenuSection>[0];
+
+export const MENU_DATA: Record<string, SectionData> = {
+  Mujer: {
+    title: "Mujer",
+    image: { src: "/chair.png", alt: "Colección Mujer" },
+    links: [
+      { label: "Bolsos", href: "/mujer/bolsos" },
+      { label: "Pequeña marroquinería", href: "/mujer/marroquineria" },
+      { label: "Calzado", href: "/mujer/calzado" },
+      { label: "Accesorios", href: "/mujer/accesorios" },
+    ],
+  },
+  Hombre: {
+    title: "Hombre",
+    image: { src: "/chair.png", alt: "Colección Hombre" },
+    links: [
+      { label: "Marroquinería", href: "/hombre/marroquineria" },
+      { label: "Calzado", href: "/hombre/calzado" },
+      { label: "Cinturones", href: "/hombre/cinturones" },
+      { label: "Accesorios", href: "/hombre/accesorios" },
+    ],
+  },
+  Joyas: {
+    title: "Joyas",
+    image: { src: "/chair.png", alt: "Joyas" },
+    links: [
+      { label: "Anillos", href: "/joyas/anillos" },
+      { label: "Pulseras", href: "/joyas/pulseras" },
+    ],
+  },
+  Relojes: {
+    title: "Relojes",
+    image: { src: "/chair.png", alt: "Relojes" },
+    links: [
+      { label: "Clásicos", href: "/relojes/clasicos" },
+      { label: "Deportivos", href: "/relojes/deportivos" },
+    ],
+  },
+  Casa: {
+    title: "Casa",
+    image: { src: "/chair.png", alt: "Casa" },
+    links: [
+      { label: "Decoración", href: "/casa/decoracion" },
+      { label: "Mesa", href: "/casa/mesa" },
+    ],
+  },
+  Beauty: {
+    title: "Beauty",
+    image: { src: "/chair.png", alt: "Beauty" },
+    links: [
+      { label: "Fragancias", href: "/beauty/fragancias" },
+      { label: "Cuidado", href: "/beauty/cuidado" },
+    ],
+  },
+  Ecuestre: {
+    title: "Ecuestre",
+    image: { src: "/chair.png", alt: "Ecuestre" },
+    links: [
+      { label: "Sillas", href: "/ecuestre/sillas" },
+      { label: "Accesorios", href: "/ecuestre/accesorios" },
+    ],
+  },
+  Regalos: {
+    title: "Regalos y Petit H",
+    image: { src: "/chair.png", alt: "Regalos", caption: "PETIT H" },
+    links: [
+      { label: "Petit H", href: "/petit-h" },
+      { label: "Regalos para mujer", href: "/regalos/mujer" },
+      { label: "Regalos para hombre", href: "/regalos/hombre" },
+      { label: "Regalos para recién nacidos", href: "/regalos/recien-nacidos" },
+    ],
+  },
+  Historias: {
+    title: "Historias",
+    image: { src: "/chair.png", alt: "Historias" },
+    links: [{ label: "Maison", href: "/historias/maison" }],
+  },
+  Nosotros: {
+    title: "Nosotros",
+    image: { src: "/chair.png", alt: "Servicios" },
+    links: [{ label: "Nostros", href: "/servicios/cuidado" }],
+  },
+};
+
+export type SectionKey = keyof typeof MENU_DATA;
+export const MENU_KEYS = Object.keys(MENU_DATA) as SectionKey[];

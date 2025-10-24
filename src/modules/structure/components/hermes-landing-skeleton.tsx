@@ -9,14 +9,22 @@ import { mueblesLiving } from "@/lib/data";
 import { carterasBolsos } from "@/lib/data";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileNavbar } from "./navbar/mobile-navbar";
+import { MobileSidebar } from "./sidebar/mobile-sidebar";
+import { useCallback, useState } from "react";
 
 export default function HermesLandingSkeleton() {
   const isMobile = useIsMobile();
+  const [openSidebar, setOpenSidebar] = useState(false);
+  const openMenu = useCallback(() => setOpenSidebar(true), []);
+  const closeMenu = useCallback(() => setOpenSidebar(false), []);
 
   return (
     <main className="min-h-[200vh] bg-zinc-100 text-neutral-900">
       {isMobile ? (
-        <MobileNavbar />
+        <>
+          <MobileNavbar onOpenMenu={openMenu} />
+          <MobileSidebar open={openSidebar} onClose={closeMenu} />
+        </>
       ) : (
         <div className="absolute top-0 left-0 w-full z-50">
           <Navbar />

@@ -1,119 +1,16 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Poppins } from "next/font/google";
-// import { MenuSection } from "@/components/MenuSection";
 import { MenuSection } from "./menu-section";
+import { SectionKey, MENU_DATA, MENU_KEYS } from "@/lib/data";
 
 const poppins = Poppins({ subsets: ["latin"], weight: "400" });
 
 type Props = { className?: string };
 
-const NAV_OPTIONS = [
-  "Mujer",
-  "Hombre",
-  "Joyas",
-  "Relojes",
-  "Casa",
-  "Beauty",
-  "Ecuestre",
-  "Regalos",
-  "Historias",
-  "Nosotros",
-] as const;
-
-// Contenido por opción (ejemplos; completá el resto)
-const MENU_DATA: Record<
-  (typeof NAV_OPTIONS)[number],
-  Parameters<typeof MenuSection>[0]
-> = {
-  Mujer: {
-    title: "Mujer",
-    image: { src: "/chair.png", alt: "Colección Mujer" },
-    links: [
-      { label: "Bolsos", href: "/mujer/bolsos" },
-      { label: "Pequeña marroquinería", href: "/mujer/marroquineria" },
-      { label: "Calzado", href: "/mujer/calzado" },
-      { label: "Accesorios", href: "/mujer/accesorios" },
-    ],
-  },
-  Hombre: {
-    title: "Hombre",
-    image: { src: "/chair.png", alt: "Colección Hombre" },
-    links: [
-      { label: "Marroquinería", href: "/hombre/marroquineria" },
-      { label: "Calzado", href: "/hombre/calzado" },
-      { label: "Cinturones", href: "/hombre/cinturones" },
-      { label: "Accesorios", href: "/hombre/accesorios" },
-    ],
-  },
-  Joyas: {
-    title: "Joyas",
-    image: { src: "/chair.png", alt: "Joyas" },
-    links: [
-      { label: "Anillos", href: "/joyas/anillos" },
-      { label: "Pulseras", href: "/joyas/pulseras" },
-    ],
-  },
-  Relojes: {
-    title: "Relojes",
-    image: { src: "/chair.png", alt: "Relojes" },
-    links: [
-      { label: "Clásicos", href: "/relojes/clasicos" },
-      { label: "Deportivos", href: "/relojes/deportivos" },
-    ],
-  },
-  Casa: {
-    title: "Casa",
-    image: { src: "/chair.png", alt: "Casa" },
-    links: [
-      { label: "Decoración", href: "/casa/decoracion" },
-      { label: "Mesa", href: "/casa/mesa" },
-    ],
-  },
-  Beauty: {
-    title: "Beauty",
-    image: { src: "/chair.png", alt: "Beauty" },
-    links: [
-      { label: "Fragancias", href: "/beauty/fragancias" },
-      { label: "Cuidado", href: "/beauty/cuidado" },
-    ],
-  },
-  Ecuestre: {
-    title: "Ecuestre",
-    image: { src: "/chair.png", alt: "Ecuestre" },
-    links: [
-      { label: "Sillas", href: "/ecuestre/sillas" },
-      { label: "Accesorios", href: "/ecuestre/accesorios" },
-    ],
-  },
-  Regalos: {
-    title: "Regalos y Petit H",
-    image: { src: "/chair.png", alt: "Regalos", caption: "PETIT H" },
-    links: [
-      { label: "Petit H", href: "/petit-h" },
-      { label: "Regalos para mujer", href: "/regalos/mujer" },
-      { label: "Regalos para hombre", href: "/regalos/hombre" },
-      { label: "Regalos para recién nacidos", href: "/regalos/recien-nacidos" },
-    ],
-  },
-  Historias: {
-    title: "Historias",
-    image: { src: "/chair.png", alt: "Historias" },
-    links: [{ label: "Maison", href: "/historias/maison" }],
-  },
-  Nosotros: {
-    title: "Nosotros",
-    image: { src: "/chair.png", alt: "Servicios" },
-    links: [{ label: "Nostros", href: "/servicios/cuidado" }],
-  },
-};
-
 export function NavbarOptions({ className }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [activeKey, setActiveKey] = useState<
-    (typeof NAV_OPTIONS)[number] | null
-  >(null);
-
+  const [activeKey, setActiveKey] = useState<SectionKey | null>(null);
   // ---- Subrayado que crece 1ª vez y luego se traslada ----
   const [underline, setUnderline] = useState({
     left: 0,
@@ -168,11 +65,8 @@ export function NavbarOptions({ className }: Props) {
     setDropdownTop(rect.bottom);
   };
 
-  const openMenu = (
-    label: (typeof NAV_OPTIONS)[number],
-    el: HTMLButtonElement
-  ) => {
-    setActiveKey(label);
+  const openMenu = (key: SectionKey, el: HTMLButtonElement) => {
+    setActiveKey(key);
     cancelHide();
     underlineTo(el);
     placeDropdown();
@@ -197,19 +91,19 @@ export function NavbarOptions({ className }: Props) {
       onMouseEnter={cancelHide}
     >
       {/* Botones */}
-      {NAV_OPTIONS.map((label) => (
+      {MENU_KEYS.map((key) => (
         <button
-          key={label}
+          key={key}
           type="button"
-          onMouseEnter={(e) => openMenu(label, e.currentTarget)}
-          onFocus={(e) => openMenu(label, e.currentTarget)}
+          onMouseEnter={(e) => openMenu(key, e.currentTarget)}
+          onFocus={(e) => openMenu(key, e.currentTarget)}
           className={`
             ${poppins.className}
             uppercase tracking-wider cursor-pointer relative py-4 px-8
             text-neutral-800 hover:text-black outline-none
           `}
         >
-          {label}
+          {key}
         </button>
       ))}
 

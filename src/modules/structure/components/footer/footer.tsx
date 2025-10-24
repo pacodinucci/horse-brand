@@ -218,13 +218,6 @@ export function Footer({
 
       {/* Franja inferior */}
       <div className="mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-end gap-4">
-        {/* <Link
-          href="#"
-          className="text-[12px] uppercase tracking-[0.14em] inline-flex items-center gap-2"
-        >
-          Su ubicación : {locationLabel} <span className="text-[13px]">›</span>
-        </Link> */}
-
         <Image
           alt="Horse Brand Logo"
           src={"/logos/HB main positivo.svg"}
