@@ -57,14 +57,14 @@ export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
         </header>
 
         {/* Lista principal */}
-        <nav className="h-[calc(100%-16rem)] overflow-y-auto px-6 py-4 space-y-5">
+        <nav className="h-[calc(100%-16rem)] overflow-y-auto px-6 py-4 space-y-1">
           {items.map((it) => (
             <button
               key={it.key}
-              className="w-full flex items-center justify-between py-2 text-[20px] tracking-wider uppercase"
+              className="w-full flex items-center justify-between py-2 text-xs tracking-wider uppercase"
             >
               <span>{it.label}</span>
-              <PiPlus size={18} className="shrink-0" />
+              <PiPlus size={12} className="shrink-0" />
             </button>
           ))}
         </nav>
