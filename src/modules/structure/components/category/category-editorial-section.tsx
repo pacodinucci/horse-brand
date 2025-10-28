@@ -22,7 +22,7 @@ export function EditorialSection({
   return (
     <section className={["w-full", className || ""].join(" ")}>
       {/* Imagen centrada */}
-      <figure className="relative w-[75%] mt-28 mx-auto overflow-hidden bg-neutral-100">
+      <figure className="relative w-[75%] mt-8 md:mt-28 mx-auto overflow-hidden bg-neutral-100">
         <div className="relative w-full aspect-[16/9] md:aspect-[21/9]">
           <Image
             src={image.src}
@@ -40,7 +40,7 @@ export function EditorialSection({
           {title}
         </h2>
         {subtitle && (
-          <p className="mt-3 text-[13px] md:text-sm text-neutral-600 max-w-3xl mx-auto">
+          <p className="mt-3 text-[13px] md:text-sm text-neutral-600 max-w-3xl mx-auto px-4 md:px-0">
             {subtitle}
           </p>
         )}

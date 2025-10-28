@@ -68,6 +68,15 @@ export const CategoryView = () => {
               },
             ]}
           />
+          <EditorialSection
+            image={{
+              src: "/editorial1.png",
+              alt: "Horse Brand Editorial",
+              priority: true,
+            }}
+            title="¡Chapó!"
+            subtitle="La elegancia monocromática del accesorio emerge discretamente entre el ritmo frenético de la ciudad."
+          />
           <MobileCategoryImageGallery
             items={[
               { src: "/cat6.png", title: "Producto 1", price: "$100.000" },
