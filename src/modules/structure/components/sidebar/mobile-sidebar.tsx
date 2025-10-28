@@ -130,7 +130,7 @@ export const MobileSidebar = ({ open, onClose }: MobileSidebarProps) => {
                         <Image
                           src={img.src}
                           alt={img.alt ?? it.label}
-                          width={400} // doble del render para buena nitidez
+                          width={400}
                           height={0}
                           className="w-full h-full object-cover"
                           loading="lazy"
