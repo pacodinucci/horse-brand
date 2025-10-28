@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface ConceptCardProps {
   title: string;
@@ -8,8 +9,13 @@ interface ConceptCardProps {
 }
 
 export const ConceptCard = ({ title, imageUrl }: ConceptCardProps) => {
+  const router = useRouter();
+
   return (
-    <div className="flex flex-col items-start group cursor-pointer transition-all duration-300">
+    <div
+      className="flex flex-col items-start group cursor-pointer transition-all duration-300"
+      onClick={() => router.push("/structure-hermes/category")}
+    >
       <div className="relative w-full aspect-square overflow-hidden bg-neutral-100">
         <Image
           src={imageUrl}

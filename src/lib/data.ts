@@ -12,7 +12,7 @@ export const mueblesLiving = {
   products: [
     {
       id: "sofa-modular-nordic",
-      href: "/producto/sofa-modular-nordic",
+      href: "/strucure-hermes/category",
       name: "Sofá Modular Nordic 3C",
       price: "USD 1.890",
       imageUrl: "/silla-landing.png",
@@ -20,7 +20,7 @@ export const mueblesLiving = {
     },
     {
       id: "mesa-centro-roble",
-      href: "/producto/mesa-centro-roble",
+      href: "/strucure-hermes/category",
       name: "Mesa de Centro Roble 110",
       price: "USD 520",
       imageUrl: "/silla-landing.png",
@@ -28,7 +28,7 @@ export const mueblesLiving = {
     },
     {
       id: "butaca-aurora",
-      href: "/producto/butaca-aurora",
+      href: "/strucure-hermes/category",
       name: "Butaca Aurora Bouclé",
       price: "USD 740",
       imageUrl: "/silla-landing.png",
@@ -36,7 +36,7 @@ export const mueblesLiving = {
     },
     {
       id: "rack-tv-olmo",
-      href: "/producto/rack-tv-olmo",
+      href: "/strucure-hermes/category",
       name: "Rack TV Olmo 180",
       price: "USD 890",
       imageUrl: "/silla-landing.png",
@@ -57,7 +57,7 @@ export const carterasBolsos = {
   products: [
     {
       id: "bolso-tote-classic",
-      href: "/producto/bolso-tote-classic",
+      href: "/strucure-hermes/category",
       name: "Bolso Tote Classic",
       price: "USD 480",
       imageUrl: "/zipper.png",
@@ -65,7 +65,7 @@ export const carterasBolsos = {
     },
     {
       id: "cartera-satchel-vintage",
-      href: "/producto/cartera-satchel-vintage",
+      href: "/strucure-hermes/category",
       name: "Cartera Satchel Vintage",
       price: "USD 560",
       imageUrl: "/zipper.png",
@@ -74,7 +74,7 @@ export const carterasBolsos = {
     },
     {
       id: "bandolera-urbana",
-      href: "/producto/bandolera-urbana",
+      href: "/strucure-hermes/category",
       name: "Bandolera Urbana",
       price: "USD 390",
       imageUrl: "/zipper.png",
@@ -82,7 +82,7 @@ export const carterasBolsos = {
     },
     {
       id: "mochila-craft",
-      href: "/producto/mochila-craft",
+      href: "/strucure-hermes/category",
       name: "Mochila Craft",
       price: "USD 620",
       imageUrl: "/zipper.png",
