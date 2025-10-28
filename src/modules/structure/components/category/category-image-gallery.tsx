@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MdOutlineChevronLeft, MdOutlineChevronRight } from "react-icons/md";
 
 type GalleryItem = {
@@ -14,7 +14,7 @@ type GalleryItem = {
 const ITEMS: GalleryItem[] = [
   {
     image: "/cat1.png",
-    hoverImages: ["/cat2.png", "/cat1.png"],
+    hoverImages: ["/cat2.png", "/cat1.png", "/cat6.png"],
     title: "Producto 1",
     price: "$ 100.000",
   },
@@ -53,53 +53,78 @@ const ITEMS: GalleryItem[] = [
 function ItemCard({
   item,
   priority,
-  widthClass = "w-[31vw]", // <-- default
+  widthClass = "w-[31vw]",
 }: {
   item: GalleryItem;
   priority?: boolean;
-  widthClass?: string; // <-- nuevo
+  widthClass?: string;
 }) {
   const slides = item.hoverImages.length ? item.hoverImages : [item.image];
   const track = [slides[slides.length - 1], ...slides, slides[0]];
-  const [idx, setIdx] = useState(1);
-  const [withTransition, setWithTransition] = useState(true);
 
-  const resetToFirst = () => {
-    setWithTransition(false);
-    setIdx(1);
+  // índice visible dentro del track clonado (1..slides.length)
+  const [idx, setIdx] = useState(1);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [jumping, setJumping] = useState(false); // ← cuando “saltamos” al real NO hay transición
+  const sliderRef = useRef<HTMLDivElement | null>(null);
+
+  // helper: 2 frames para asegurar que el navegador pinte el cambio sin transición
+  const doubleRaf = (cb: () => void) =>
+    requestAnimationFrame(() => requestAnimationFrame(cb));
+
+  const hardSetIndex = (n: number) => {
+    // Apaga transición, cambia índice y sólo después de 2 frames vuelve a habilitarla
+    setJumping(true);
+    setIdx(n);
+    doubleRaf(() => setJumping(false));
   };
-  const resetToLast = () => {
-    setWithTransition(false);
-    setIdx(slides.length);
+
+  const onTransitionEnd: React.TransitionEventHandler<HTMLDivElement> = (e) => {
+    // responder SOLO a transform del propio slider
+    if (e.currentTarget !== sliderRef.current) return;
+    if (e.propertyName !== "transform") return;
+
+    if (idx === 0) {
+      // estábamos en el clon izquierdo → saltar al último real sin animar
+      hardSetIndex(slides.length);
+      setIsAnimating(false);
+      return;
+    }
+    if (idx === slides.length + 1) {
+      // estábamos en el clon derecho → saltar al primero real sin animar
+      hardSetIndex(1);
+      setIsAnimating(false);
+      return;
+    }
+    // transición normal terminada
+    setIsAnimating(false);
   };
-  const onTransitionEnd = () => {
-    if (idx === 0) resetToLast();
-    else if (idx === slides.length + 1) resetToFirst();
-  };
-  const enableTransitionNextTick = () => {
-    requestAnimationFrame(() => setWithTransition(true));
-  };
+
   const next = () => {
-    setWithTransition(true);
-    setIdx((i) => i + 1);
+    if (isAnimating || jumping) return;
+    setIsAnimating(true);
+    setIdx((i) => i + 1); // puede ir a slides.length + 1 (clon). Luego se corrige en onTransitionEnd.
   };
+
   const prev = () => {
-    setWithTransition(true);
-    setIdx((i) => i - 1);
+    if (isAnimating || jumping) return;
+    setIsAnimating(true);
+    setIdx((i) => i - 1); // puede ir a 0 (clon). Luego se corrige en onTransitionEnd.
   };
+
   const resetHover = () => {
-    setWithTransition(false);
-    setIdx(1);
-    enableTransitionNextTick();
+    // Volver silenciosamente al primero real
+    setIsAnimating(false);
+    hardSetIndex(1);
   };
 
   return (
     <div className="group select-none">
       <div
-        className={`relative mt-6 ${widthClass} aspect-square overflow-hidden bg-white cursor-pointer`}
+        className={`relative mt-6 ${widthClass} aspect-square overflow-hidden bg-zinc-100 cursor-pointer`}
         onMouseLeave={resetHover}
-        onMouseEnter={enableTransitionNextTick}
       >
+        {/* Imagen base (reposo) */}
         <Image
           src={item.image}
           alt={`${item.title} base`}
@@ -108,13 +133,16 @@ function ItemCard({
           className="object-cover transition-opacity duration-300 group-hover:opacity-0"
         />
 
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-600">
+        {/* Carrusel en hover */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-in-out">
           <div className="h-full w-full overflow-hidden">
             <div
+              ref={sliderRef}
               className={`flex h-full w-full ${
-                withTransition
-                  ? "transition-transform duration-600 ease-out"
-                  : ""
+                // si estamos “saltando”, no aplicar transición
+                jumping
+                  ? "transition-none"
+                  : "transition-transform duration-500 ease-out"
               }`}
               style={{ transform: `translateX(-${idx * 100}%)` }}
               onTransitionEnd={onTransitionEnd}
@@ -136,6 +164,7 @@ function ItemCard({
           </div>
         </div>
 
+        {/* Controles */}
         <button
           type="button"
           aria-label="Anterior"
@@ -184,9 +213,6 @@ export const CategoryImageGallery = ({
   return (
     <div className={`px-8 bg-zinc-100 ${cols} ${gapClass}`}>
       {items.map((item, i) => {
-        // 👇 en asimétrico con 2:
-        // - inverse=false  -> izquierda grande (i===0)
-        // - inverse=true   -> derecha grande  (i===1)
         const isBig =
           count === 2 && asymetric ? (inverse ? i === 1 : i === 0) : false;
 

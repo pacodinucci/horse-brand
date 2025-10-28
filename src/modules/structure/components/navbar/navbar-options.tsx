@@ -4,7 +4,10 @@ import { Poppins } from "next/font/google";
 import { MenuSection } from "./menu-section";
 import { SectionKey, MENU_DATA, MENU_KEYS } from "@/lib/data";
 
-const poppins = Poppins({ subsets: ["latin"], weight: "400" });
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["100", "400", "500", "600"],
+});
 
 type Props = { className?: string };
 
@@ -99,7 +102,7 @@ export function NavbarOptions({ className }: Props) {
           onFocus={(e) => openMenu(key, e.currentTarget)}
           className={`
             ${poppins.className}
-            uppercase tracking-wider cursor-pointer relative py-4 px-8
+            uppercase text-xs font-semibold tracking-wider cursor-pointer relative py-4 px-8
             text-neutral-800 hover:text-black outline-none
           `}
         >
