@@ -1,10 +1,15 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
 import { useSticky } from "@/hooks/useSticky";
 import { NavbarMain } from "./navbar-main";
 import { NavbarOptions } from "./navbar-options";
 
-export function Navbar() {
+interface NavbarProps {
+  onFixedChange?: (isFixed: boolean) => void;
+}
+
+export function Navbar({ onFixedChange }: NavbarProps) {
   const isSticky = useSticky();
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -61,6 +66,16 @@ export function Navbar() {
   // Main: fijo solo cuando las options están fijas; visible solo al scrollear hacia arriba
   const mainIsFixed = isOptionsFixed;
   const mainIsVisible = isOptionsFixed && isScrollingUp;
+
+  const prevMainIsFixed = useRef(mainIsFixed);
+
+  useEffect(() => {
+    if (prevMainIsFixed.current !== mainIsFixed) {
+      // Señal hacia afuera
+      onFixedChange?.(mainIsFixed);
+      prevMainIsFixed.current = mainIsFixed;
+    }
+  }, [mainIsFixed, onFixedChange]);
 
   // -----
   const prevOptionsFixed = useRef(false);
