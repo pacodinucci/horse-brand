@@ -191,12 +191,7 @@ export const ProductImagesStrip = forwardRef<ProductImagesStripHandle, Props>(
     };
 
     return (
-      <div
-        className={[
-          "w-full relative", // 👈 relative para posicionar las thumbs encima
-          className || "",
-        ].join(" ")}
-      >
+      <div className={["w-full relative", className || ""].join(" ")}>
         {/* Strip scrolleable con drag + inercia */}
         <section
           ref={scrollRef}
