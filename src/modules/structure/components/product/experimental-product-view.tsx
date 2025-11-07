@@ -25,6 +25,7 @@ const stripImages = [
 
 export default function ExperimentalProductView() {
   const [navFixed, setNavFixed] = useState(false);
+  const [navMainScrollUpVisible, setNavMainScrollUpVisible] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50">
@@ -33,6 +34,9 @@ export default function ExperimentalProductView() {
         onFixedChange={(isFixed) => {
           setNavFixed(isFixed);
         }}
+        onMainVisibleChange={(isVisibleByScrollUp) =>
+          setNavMainScrollUpVisible(isVisibleByScrollUp)
+        }
       />
 
       {/* MAIN: importante el padding-top para que el contenido no quede debajo del navbar */}
@@ -40,9 +44,9 @@ export default function ExperimentalProductView() {
         <ProductImagesStrip images={stripImages} />
         <div className="max-w-screen mx-auto px-12 md:px-6 pt-[120px] pb-24">
           {/* GRID: izquierda contenido largo, derecha sidebar sticky */}
-          <div className="grid gap-32 lg:grid-cols-[minmax(0,1.7fr)_minmax(320px,1fr)] items-start">
+          <div className="grid gap-32 lg:grid-cols-[minmax(0,1.7fr)_minmax(400px,1fr)] items-start justify-items-end mr-2">
             {/* COLUMNA IZQUIERDA - contenido falso solo para scrollear */}
-            <section className="space-y-6">
+            <section className="space-y-6 justify-self-stretch">
               <h1 className="uppercase text-2xl tracking-wide">
                 Productos Relacionados
               </h1>
@@ -58,10 +62,11 @@ export default function ExperimentalProductView() {
             <aside
               className={`
                 sticky
-                top-[48px]
                 -mt-240
+                ${navMainScrollUpVisible ? "top-[128px]" : "top-[48px]"}
                 self-start
                 space-y-4
+                max-w-[400px]
               `}
             >
               <div className="bg-stone-100/90 shadow-sm p-6">
@@ -81,7 +86,7 @@ export default function ExperimentalProductView() {
                     height={70}
                   />
                   <Separator className="h-[.5px] bg-slate-300" />
-                  <Button className="w-1/2 self-center rounded-none text-lg font-light my-4 cursor-pointer">
+                  <Button className="w-1/2 self-center rounded-none text-sm font-light my-4 cursor-pointer">
                     Agregar al Carrito
                   </Button>
                   <div className="flex flex-col gap-2 text-neutral-500 font-light text-sm max-w-[80%]">

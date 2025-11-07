@@ -224,7 +224,7 @@ export const ProductImagesStrip = forwardRef<ProductImagesStripHandle, Props>(
               </figure>
             ))}
 
-            <div className="flex-none w-[55vw] md:w-[38vw]" />
+            <div className="flex-none w-[55vw] md:w-[28vw]" />
           </div>
         </section>
 

@@ -25,7 +25,7 @@ export const ProductView = () => {
     stripRef.current?.scrollToIndex(index);
   };
   return (
-    <>
+    <div>
       <div className="fixed top-0 left-0 z-50 w-full">
         <Navbar />
       </div>
@@ -48,6 +48,6 @@ export const ProductView = () => {
       <div className="min-h-screen"></div>
       <div className="min-h-screen bg-red-200"></div>
       <div className="min-h-screen bg-red-400"></div>
-    </>
+    </div>
   );
 };

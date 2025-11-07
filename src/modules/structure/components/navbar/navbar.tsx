@@ -7,9 +7,10 @@ import { NavbarOptions } from "./navbar-options";
 
 interface NavbarProps {
   onFixedChange?: (isFixed: boolean) => void;
+  onMainVisibleChange?: (visible: boolean) => void;
 }
 
-export function Navbar({ onFixedChange }: NavbarProps) {
+export function Navbar({ onFixedChange, onMainVisibleChange }: NavbarProps) {
   const isSticky = useSticky();
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -65,7 +66,7 @@ export function Navbar({ onFixedChange }: NavbarProps) {
 
   // Main: fijo solo cuando las options están fijas; visible solo al scrollear hacia arriba
   const mainIsFixed = isOptionsFixed;
-  const mainIsVisible = isOptionsFixed && isScrollingUp;
+  const mainShownByScrollUp = isOptionsFixed && isScrollingUp;
 
   const prevMainIsFixed = useRef(mainIsFixed);
 
@@ -76,6 +77,16 @@ export function Navbar({ onFixedChange }: NavbarProps) {
       prevMainIsFixed.current = mainIsFixed;
     }
   }, [mainIsFixed, onFixedChange]);
+
+  const prevMainShownByScrollUp = useRef(mainShownByScrollUp);
+
+  useEffect(() => {
+    if (prevMainShownByScrollUp.current !== mainShownByScrollUp) {
+      // 👇 ESTA es la señal que pediste
+      onMainVisibleChange?.(mainShownByScrollUp);
+      prevMainShownByScrollUp.current = mainShownByScrollUp;
+    }
+  }, [mainShownByScrollUp, onMainVisibleChange]);
 
   // -----
   const prevOptionsFixed = useRef(false);
@@ -110,7 +121,7 @@ export function Navbar({ onFixedChange }: NavbarProps) {
             : "",
           !mainIsFixed
             ? ""
-            : mainIsVisible
+            : mainShownByScrollUp
             ? "translate-y-0"
             : "-translate-y-full",
         ].join(" ")}
@@ -127,7 +138,9 @@ export function Navbar({ onFixedChange }: NavbarProps) {
             : "bg-zinc-50",
           "flex justify-center transition-all duration-300 ease-out",
         ].join(" ")}
-        style={isOptionsFixed ? { top: mainIsVisible ? mainH : 0 } : undefined}
+        style={
+          isOptionsFixed ? { top: mainShownByScrollUp ? mainH : 0 } : undefined
+        }
       >
         <NavbarOptions />
       </div>
