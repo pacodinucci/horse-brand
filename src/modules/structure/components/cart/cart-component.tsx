@@ -6,10 +6,23 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
+const MOCK_CART_ITEMS = [
+  {
+    id: "1edc8b5f-04a6-4a3b-a013-369e21133850",
+    name: "Banquito Niño",
+    price: 215000,
+    image:
+      "https://res.cloudinary.com/dhqdyyxbd/image/upload/v1759325444/kbyigm06ni3wqagkf8be.jpg",
+    quantity: 1,
+  },
+];
+
 export const CartComponent = () => {
-  const cartItems = useCartStore((state) => state.items);
+  // const cartItems = useCartStore((state) => state.items);
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
+
+  const cartItems = MOCK_CART_ITEMS;
 
   const subtotal = cartItems.reduce(
     (acc: number, item) => acc + item.price * item.quantity,
