@@ -26,11 +26,13 @@ import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { customerInsertSchema } from "@/modules/customers/schemas";
+import { useCartStore } from "@/store/cart";
 
 const checkoutSchema = z.object({
   location: z.string().min(1, "Seleccioná una ubicación"), // country
   firstName: z.string().min(1, "Ingresá tu nombre"),
   lastName: z.string().min(1, "Ingresá tus apellidos"),
+  email: z.string().email("Ingresá un email válido"),
   company: z.string().optional(),
   address1: z.string().min(1, "Ingresá tu dirección"),
   city: z.string().min(1, "Ingresá tu ciudad"),
@@ -46,7 +48,11 @@ export const CheckoutForm = () => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
+  const cartItems = useCartStore((state) => state.items);
+
   const [savedValues, setSavedValues] = useState<CheckoutValues | null>(null);
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [isPaying, setIsPaying] = useState(false);
 
   const form = useForm<CheckoutValues>({
     resolver: zodResolver(checkoutSchema),
@@ -54,6 +60,7 @@ export const CheckoutForm = () => {
       location: "Argentina",
       firstName: "",
       lastName: "",
+      email: "",
       company: "",
       address1: "",
       city: "",
@@ -66,29 +73,23 @@ export const CheckoutForm = () => {
   const mutation = useMutation(trpc.customers.create.mutationOptions());
 
   const onSubmit = (values: CheckoutValues) => {
-    // TODO: reemplazar esto por el email real (logged user, campo extra, etc.)
-    const email: string = "cliente@example.com";
-
     const payload: CustomerValues = {
-      // ---- Campos requeridos en Customer ----
       name: `${values.firstName} ${values.lastName}`.trim(),
-      email,
-
-      // ---- Opcionales ----
+      email: values.email.trim(),
       phone: `${values.phonePrefix} ${values.phoneNumber}`.trim(),
       address: values.address1,
       city: values.city,
-      // si agregás un campo "state" al form, podés mapearlo acá
       state: undefined,
       country: values.location,
       zipCode: values.postalCode,
     };
 
     mutation.mutate(payload, {
-      onSuccess: () => {
+      onSuccess: (customer) => {
         queryClient.invalidateQueries();
         toast.success("Datos guardados correctamente.");
-        setSavedValues(values); // mostramos el resumen
+        setSavedValues(values);
+        setCustomerId(customer.id);
       },
       onError: (err) => {
         toast.error(err.message || "Error al guardar los datos");
@@ -99,6 +100,53 @@ export const CheckoutForm = () => {
   const handleEdit = () => {
     if (savedValues) form.reset(savedValues);
     setSavedValues(null);
+  };
+
+  const handlePay = async () => {
+    if (!customerId) {
+      toast.error("Faltan los datos del cliente.");
+      return;
+    }
+
+    if (!cartItems.length) {
+      toast.error("Tu carrito está vacío.");
+      return;
+    }
+
+    try {
+      setIsPaying(true);
+
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cart: cartItems,
+          customerId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("MP error:", data);
+        toast.error(data.error || "Error al iniciar el pago");
+        return;
+      }
+
+      if (!data.init_point) {
+        toast.error("Respuesta inválida de Mercado Pago");
+        return;
+      }
+
+      window.location.href = data.init_point;
+    } catch (error) {
+      console.error("Error llamando a MP:", error);
+      toast.error("No se pudo conectar con Mercado Pago");
+    } finally {
+      setIsPaying(false);
+    }
   };
 
   return (
@@ -116,6 +164,13 @@ export const CheckoutForm = () => {
             <span>
               {savedValues.firstName} {savedValues.lastName}
             </span>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-[11px] uppercase tracking-[0.18em] text-neutral-600">
+              Email
+            </span>
+            <span>{savedValues.email}</span>
           </div>
 
           {savedValues.company && (
@@ -172,8 +227,10 @@ export const CheckoutForm = () => {
               type="button"
               variant="default"
               className="px-6 py-3 rounded-sm text-[11px] tracking-[0.18em] uppercase"
+              onClick={handlePay}
+              disabled={isPaying || !customerId}
             >
-              Continuar con el pago
+              {isPaying ? "Redirigiendo..." : "Continuar con el pago"}
             </Button>
           </div>
         </div>
@@ -258,6 +315,27 @@ export const CheckoutForm = () => {
                 )}
               />
             </div>
+
+            {/* Email */}
+            <FormField
+              name="email"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[11px] uppercase tracking-[0.18em] text-neutral-600">
+                    Email *
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="email"
+                      className="rounded-none border-[#cbcaca] bg-white"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Empresa */}
             <FormField
