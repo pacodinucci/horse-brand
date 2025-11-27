@@ -2,19 +2,19 @@
 
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
 
 const STEPS = [
-  { label: "CARRITO", href: "/cart" },
-  { label: "ENVÍO & PAGO", href: "/checkout" },
-  { label: "CONFIRMACIÓN", href: "/checkout/confirmation" },
+  { label: "CARRITO", href: "/structure-hermes/cart" },
+  { label: "ENVÍO & PAGO", href: "/structure-hermes/checkout" },
+  { label: "CONFIRMACIÓN", href: "/structure-hermes/checkout/confirmation" },
 ];
 
 export function CheckoutSteps() {
   const pathname = usePathname();
 
-  const currentIndex =
-    STEPS.findIndex((step) => pathname.startsWith(step.href)) ?? 0;
-  const activeIndex = currentIndex === -1 ? 0 : currentIndex;
+  const foundIndex = STEPS.findIndex((step) => pathname.startsWith(step.href));
+  const activeIndex = foundIndex === -1 ? 0 : foundIndex;
 
   return (
     <div className="w-full py-6">
@@ -27,6 +27,7 @@ export function CheckoutSteps() {
         <div className="flex">
           {STEPS.map((step, index) => {
             const isActive = index === activeIndex;
+            const isCompleted = index < activeIndex; // 👈 solo pasos anteriores
 
             return (
               <div
@@ -35,11 +36,16 @@ export function CheckoutSteps() {
               >
                 <div
                   className={cn(
-                    "w-3 h-3 rounded-full border bg-zinc-100",
+                    "w-4 h-4 rounded-full border bg-zinc-100 flex items-center justify-center",
                     "border-neutral-400",
-                    isActive && "bg-neutral-800 border-neutral-800"
+                    (isActive || isCompleted) &&
+                      "bg-neutral-800 border-neutral-800"
                   )}
-                />
+                >
+                  {isCompleted && (
+                    <Check className="w-3 h-3 text-zinc-50" strokeWidth={2.5} />
+                  )}
+                </div>
               </div>
             );
           })}
@@ -49,7 +55,7 @@ export function CheckoutSteps() {
       {/* Labels debajo, centrados bajo cada punto */}
       <div className="mt-2 flex">
         {STEPS.map((step, index) => {
-          const isActive = index === activeIndex;
+          const isCompletedOrActive = index <= activeIndex;
 
           return (
             <div key={step.href} className="flex-1 text-center">
@@ -57,7 +63,7 @@ export function CheckoutSteps() {
                 className={cn(
                   "text-[11px] uppercase tracking-[0.18em]",
                   "text-neutral-500",
-                  isActive && "text-neutral-800"
+                  isCompletedOrActive && "text-neutral-800"
                 )}
               >
                 {step.label}

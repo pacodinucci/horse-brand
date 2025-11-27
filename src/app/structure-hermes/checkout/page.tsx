@@ -1,13 +1,13 @@
-import { CartView } from "@/modules/structure/components/cart/cart-view";
+import { CheckoutView } from "@/modules/structure/components/checkout/checkout-view";
 import { CheckoutFooter } from "@/modules/structure/components/footer/checkout-footer";
 
-const CartPage = () => {
+const Page = () => {
   return (
     <div>
-      <CartView />
+      <CheckoutView />
       <CheckoutFooter />
     </div>
   );
 };
 
-export default CartPage;
+export default Page;

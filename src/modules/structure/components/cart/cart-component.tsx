@@ -5,6 +5,7 @@ import { useCartStore } from "@/store/cart";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 const MOCK_CART_ITEMS = [
   {
@@ -18,6 +19,7 @@ const MOCK_CART_ITEMS = [
 ];
 
 export const CartComponent = () => {
+  const router = useRouter();
   // const cartItems = useCartStore((state) => state.items);
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
@@ -249,6 +251,7 @@ export const CartComponent = () => {
         hover:bg-neutral-900
         transition-colors cursor-pointer
       "
+            onClick={() => router.push("/structure-hermes/checkout")}
           >
             Realizar pedido
           </Button>
