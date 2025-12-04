@@ -14,7 +14,7 @@ export const ConceptCard = ({ title, imageUrl }: ConceptCardProps) => {
   return (
     <div
       className="flex flex-col items-start group cursor-pointer transition-all duration-300"
-      onClick={() => router.push("/structure-hermes/category")}
+      onClick={() => router.push("/category")}
     >
       <div className="relative w-full aspect-square overflow-hidden bg-neutral-100">
         <Image

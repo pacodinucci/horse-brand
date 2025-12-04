@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 
 const STEPS = [
-  { label: "CARRITO", href: "/structure-hermes/cart" },
-  { label: "ENVÍO & PAGO", href: "/structure-hermes/checkout" },
-  { label: "CONFIRMACIÓN", href: "/structure-hermes/checkout/confirmation" },
+  { label: "CARRITO", href: "/cart" },
+  { label: "ENVÍO & PAGO", href: "/checkout" },
+  { label: "CONFIRMACIÓN", href: "/checkout/confirmation" },
 ];
 
 export function CheckoutSteps() {

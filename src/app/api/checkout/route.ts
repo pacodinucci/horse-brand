@@ -58,7 +58,7 @@ export async function POST(req: Request) {
         back_urls: {
           success:
             process.env.MP_SUCCESS_URL ||
-            "https://8cd24c98782f.ngrok-free.app/success",
+            "https://horse-brand.vercel.app/success",
           failure:
             process.env.MP_FAILURE_URL ||
             "https://8cd24c98782f.ngrok-free.app/failure",
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
         },
         auto_return: "approved",
         external_reference: order.id,
-        notification_url: "https://8cd24c98782f.ngrok-free.app/api/webhook", // Si ya querés el webhook
+        notification_url: "https://horse-brand.vercel.app/api/webhook",
       },
     });
 

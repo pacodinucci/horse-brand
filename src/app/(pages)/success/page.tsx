@@ -1,7 +1,7 @@
 import React from "react";
 
 const SuccessPage = () => {
-  return <div>SuccessPage</div>;
+  return <div>Gracias por tu compra!</div>;
 };
 
 export default SuccessPage;

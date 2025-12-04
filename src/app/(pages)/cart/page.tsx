@@ -1,14 +1,12 @@
-import { CartView } from "@/modules/cart/ui/views/cart-view";
-import { Navbar } from "@/modules/landing/ui/components/navbar";
+import { CartView } from "@/modules/structure/components/cart/cart-view";
+import { CheckoutFooter } from "@/modules/structure/components/footer/checkout-footer";
 
-const CartPage = async () => {
+const CartPage = () => {
   return (
-    <>
-      <Navbar />
-      <div className="px-6">
-        <CartView />
-      </div>
-    </>
+    <div>
+      <CartView />
+      <CheckoutFooter />
+    </div>
   );
 };
 

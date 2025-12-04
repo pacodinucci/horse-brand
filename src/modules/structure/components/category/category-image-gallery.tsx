@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { MdOutlineChevronLeft, MdOutlineChevronRight } from "react-icons/md";
 
@@ -59,6 +60,7 @@ function ItemCard({
   priority?: boolean;
   widthClass?: string;
 }) {
+  const router = useRouter();
   const slides = item.hoverImages.length ? item.hoverImages : [item.image];
   const track = [slides[slides.length - 1], ...slides, slides[0]];
 
@@ -123,6 +125,7 @@ function ItemCard({
       <div
         className={`relative mt-6 ${widthClass} aspect-square overflow-hidden bg-zinc-100 cursor-pointer`}
         onMouseLeave={resetHover}
+        onClick={() => router.push("/product")}
       >
         {/* Imagen base (reposo) */}
         <Image

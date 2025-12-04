@@ -11,8 +11,22 @@ import {
 } from "@/components/ui/accordion";
 import { ChevronDown } from "lucide-react";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
+import { useCartStore } from "@/store/cart";
 
 export const ProductDetail = () => {
+  const addItem = useCartStore((state) => state.addItem);
+
+  const handleAddToCart = () => {
+    addItem({
+      id: "1edc8b5f-04a6-4a3b-a013-369e21133850", // mismo id que hardcodeaste
+      name: "Banquito Niño", // o "Cartera de cuero" si querés
+      price: 215000, // número, no string
+      image:
+        "https://res.cloudinary.com/dhqdyyxbd/image/upload/v1759325444/kbyigm06ni3wqagkf8be.jpg",
+      quantity: 1,
+    });
+  };
+
   return (
     <div className="flex flex-col md:gap-6">
       <div className="bg-stone-100/90 shadow-sm p-2 md:p-6">
@@ -32,7 +46,10 @@ export const ProductDetail = () => {
             height={70}
           />
           <Separator className="h-[.5px] bg-slate-300" />
-          <Button className="w-1/2 self-center rounded-none text-sm font-light my-4 cursor-pointer hidden md:block">
+          <Button
+            className="w-1/2 self-center rounded-none text-sm font-light my-4 cursor-pointer hidden md:flex items-center"
+            onClick={handleAddToCart}
+          >
             <HiOutlineShoppingBag />
             Agregar al Carrito
           </Button>

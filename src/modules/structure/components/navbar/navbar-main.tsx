@@ -17,7 +17,7 @@ export const NavbarMain = () => {
             src={"/logos/HB lite positivo.svg"}
             width={80}
             height={0}
-            onClick={() => router.push("/structure-hermes")}
+            onClick={() => router.push("/")}
           />
         </div>
         <AccountCart />

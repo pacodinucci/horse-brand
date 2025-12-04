@@ -251,7 +251,7 @@ export const CartComponent = () => {
         hover:bg-neutral-900
         transition-colors cursor-pointer
       "
-            onClick={() => router.push("/structure-hermes/checkout")}
+            onClick={() => router.push("/checkout")}
           >
             Realizar pedido
           </Button>

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   useRef,
   useState,
@@ -8,6 +7,7 @@ import {
   forwardRef,
   useImperativeHandle,
 } from "react";
+import Image from "next/image";
 import { ProductThumbnails } from "./product-thumbnails";
 
 type ProductImage = {
