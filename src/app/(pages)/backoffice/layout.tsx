@@ -4,7 +4,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { BackofficeNavbar } from "@/modules/backoffice/ui/components/backoffice-navbar";
 import { BackofficeSidebar } from "@/modules/backoffice/ui/components/backoffice-sidebar";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { authClient } from "@/lib/auth-client"; // Ajustá según tu auth
 
 interface DashboardLayoutProps {
@@ -15,13 +15,17 @@ const BackofficeLayout = ({ children }: DashboardLayoutProps) => {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
+  const checked = useMemo(() => !isPending, [isPending]);
+
   useEffect(() => {
-    if (!isPending && !session) {
+    if (checked && !session) {
       router.replace("/sign-in");
     }
-  }, [session, isPending, router]);
+  }, [checked, session, router]);
 
-  if (isPending) return null;
+  if (!checked) return null;
+
+  if (!session) return null;
 
   return (
     <SidebarProvider>
