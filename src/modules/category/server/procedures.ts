@@ -57,7 +57,7 @@ export const categoryRouter = createTRPCRouter({
       };
     }),
 
-  getOne: protectedProcedure
+  getOne: baseProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       const category = await db.category.findUnique({
