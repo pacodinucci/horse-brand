@@ -1,19 +1,85 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MobileNavbar } from "../navbar/mobile-navbar";
 import { MobileSidebar } from "../sidebar/mobile-sidebar";
 import { MobileImageSlider } from "./mobile-image-slider";
 import { ProductDetail } from "./product-detail";
 import { Footer } from "../footer/footer";
 import { MobileBuyBar } from "./mobile-buy-bar";
+import { useTRPC } from "@/trpc/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-const stripImages = [
-  { src: "/bag.png", alt: "Vista frontal" },
-  { src: "/cat8.png", alt: "Vista lateral" },
-  { src: "/cat9.png", alt: "Detalle hebilla" },
-  { src: "/cat10.png", alt: "Vista detrás" },
+// Ideal: importalos desde un lugar común (ej: modules/structure/constants/images.ts)
+const PRODUCT_PLACEHOLDER_IMAGES = [
+  "/cat1.png",
+  "/cat2.png",
+  "/cat3.png",
+  "/cat4.png",
+  "/cat5.png",
+  "/cat6.png",
+  "/cat7.png",
+  "/cat8.png",
+  "/cat9.png",
+  "/cat10.png",
+  "/cat11.png",
+  "/cat12.png",
 ];
 
-export const MobileProductView = () => {
+function hashStringToNumber(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function pickStableImages(productId: string, pool: string[], count = 4) {
+  if (!pool.length) return [];
+  const seed = hashStringToNumber(productId);
+  const out: string[] = [];
+  const used = new Set<number>();
+
+  // aseguramos que no se repitan tanto (por si count < pool)
+  for (let i = 0; i < count; i++) {
+    let idx = (seed + i * 31) % pool.length;
+    // pequeña corrección si colisiona
+    while (used.has(idx) && used.size < pool.length) {
+      idx = (idx + 1) % pool.length;
+    }
+    used.add(idx);
+    out.push(pool[idx]);
+  }
+
+  return out;
+}
+
+interface MobileProductViewProps {
+  productId: string;
+}
+
+export const MobileProductView = ({ productId }: MobileProductViewProps) => {
+  const trpc = useTRPC();
+
+  // 1) Traemos el producto por id
+  const { data: product } = useSuspenseQuery(
+    trpc.products.getOne.queryOptions({ id: productId })
+  );
+
+  // 2) Armamos imágenes para slider (si no hay images en DB, placeholders estables)
+  const sliderImages = useMemo(() => {
+    const imgs =
+      product.images && product.images.length > 0
+        ? product.images
+        : pickStableImages(product.id, PRODUCT_PLACEHOLDER_IMAGES, 4);
+
+    return imgs.map((src, i) => ({
+      src,
+      alt: `${product.name} ${i + 1}`,
+    }));
+  }, [product]);
+
   const [openSidebar, setOpenSidebar] = useState(false);
   const [footerVisible, setFooterVisible] = useState(false);
 
@@ -27,12 +93,9 @@ export const MobileProductView = () => {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        const entry = entries[0];
-        setFooterVisible(entry.isIntersecting);
+        setFooterVisible(entries[0]?.isIntersecting ?? false);
       },
-      {
-        threshold: 0.1,
-      }
+      { threshold: 0.1 }
     );
 
     observer.observe(footerRef.current);
@@ -44,21 +107,27 @@ export const MobileProductView = () => {
     <>
       <MobileNavbar onOpenMenu={openMenu} />
       <MobileSidebar open={openSidebar} onClose={closeMenu} />
+
       <div className="pt-14 bg-zinc-200">
-        <MobileImageSlider images={stripImages} />
-        <div>
-          <ProductDetail />
+        <MobileImageSlider images={sliderImages} />
+
+        <div className="px-4 py-4">
+          {/* 3) ProductDetail ahora recibe el producto real + una imagen “hero” */}
+          <ProductDetail product={product} heroImage={sliderImages[0]?.src} />
         </div>
+
         <MobileBuyBar
           hidden={footerVisible}
           onApplePay={() => {
-            // lógica de Apple Pay
+            // TODO: lógica de Apple Pay
           }}
           onAddToCart={() => {
-            // lógica para añadir al carrito
+            // Ideal: que ProductDetail exporte/reciba callback
+            // o repetís acá la lógica usando useCartStore.
           }}
         />
       </div>
+
       <div ref={footerRef}>
         <Footer />
       </div>

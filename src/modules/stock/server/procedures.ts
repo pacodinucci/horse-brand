@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
+import {
+  baseProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+} from "@/trpc/init";
 import db from "@/lib/db";
 import {
   DEFAULT_PAGE,
@@ -10,6 +14,8 @@ import {
 import { TRPCError } from "@trpc/server";
 import { stockInsertSchema } from "../schemas";
 import { Prisma } from "@prisma/client";
+
+const norm = (v?: string | null) => v?.trim().toLowerCase() || undefined;
 
 export const stockRouter = createTRPCRouter({
   create: protectedProcedure
@@ -125,7 +131,6 @@ export const stockRouter = createTRPCRouter({
     .query(async ({ input }) => {
       const { page, pageSize, search } = input;
 
-      // 🔑 Filtro correcto para relaciones en Prisma: usá `is` para 1 a 1
       let where: Prisma.StockWhereInput = {};
 
       if (search) {
@@ -185,7 +190,6 @@ export const stockRouter = createTRPCRouter({
   remove: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
-      // Primero, comprobá que exista (opcional pero prolijo)
       const stock = await db.stock.findUnique({ where: { id: input.id } });
 
       if (!stock) {
@@ -208,9 +212,6 @@ export const stockRouter = createTRPCRouter({
         id: z.string(),
         quantity: z.number(),
         warehouseId: z.string(),
-        // Podés permitir cambiar atributos, productVariant, etc, según tu lógica
-        // attributes: z.record(z.string(), z.string()).optional(),
-        // productVariantId: z.string().optional(),
         sku: z.string().optional(),
       })
     )
@@ -225,7 +226,6 @@ export const stockRouter = createTRPCRouter({
         });
       }
 
-      // Actualizá solo lo necesario (agregá más campos si querés)
       const updated = await db.stock.update({
         where: { id },
         data: {
@@ -235,5 +235,82 @@ export const stockRouter = createTRPCRouter({
       });
 
       return updated;
+    }),
+
+  // ✅ EXACTAMENTE como lo necesitás
+  getAvailabilityBySelection: baseProcedure
+    .input(
+      z.object({
+        productId: z.string().uuid(),
+        color: z.string().optional(),
+        material: z.string().optional(),
+        measure: z.string().optional(),
+        warehouseId: z.string().uuid().optional(), // opcional
+      })
+    )
+    .query(async ({ input }) => {
+      const color = norm(input.color);
+      const material = norm(input.material);
+      const measure = norm(input.measure);
+
+      // 1) Buscar variant por productId + TODOS los atributos provistos
+      const whereVariant: Prisma.ProductVariantWhereInput = {
+        productId: input.productId,
+
+        ...(color
+          ? { color: { equals: color, mode: Prisma.QueryMode.insensitive } }
+          : {}),
+        ...(material
+          ? {
+              material: {
+                equals: material,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            }
+          : {}),
+        ...(measure
+          ? { measure: { equals: measure, mode: Prisma.QueryMode.insensitive } }
+          : {}),
+      };
+
+      const variant = await db.productVariant.findFirst({
+        where: whereVariant,
+        select: { id: true, sku: true },
+      });
+
+      if (!variant) {
+        return {
+          productVariantId: null as string | null,
+          sku: null as string | null,
+          available: 0,
+          perWarehouse: [] as Array<{ warehouseId: string; quantity: number }>,
+        };
+      }
+
+      // 2) Stock por productVariantId (y opcional warehouseId)
+      const whereStock: Prisma.StockWhereInput = {
+        productVariantId: variant.id,
+        ...(input.warehouseId ? { warehouseId: input.warehouseId } : {}),
+      };
+
+      const totalAgg = await db.stock.aggregate({
+        where: whereStock,
+        _sum: { quantity: true },
+      });
+
+      const rows = await db.stock.findMany({
+        where: { productVariantId: variant.id },
+        select: { warehouseId: true, quantity: true },
+      });
+
+      return {
+        productVariantId: variant.id,
+        sku: variant.sku ?? null,
+        available: totalAgg._sum.quantity ?? 0,
+        perWarehouse: rows.map((r) => ({
+          warehouseId: r.warehouseId,
+          quantity: r.quantity,
+        })),
+      };
     }),
 });

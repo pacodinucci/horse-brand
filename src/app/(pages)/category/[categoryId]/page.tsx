@@ -1,9 +1,9 @@
 import { CategoryView } from "@/modules/structure/components/category/category-view";
 
-const Page = () => {
+const Page = ({ params }: { params: { categoryId: string } }) => {
   return (
     <div>
-      <CategoryView />
+      <CategoryView categoryId={params.categoryId} />
     </div>
   );
 };

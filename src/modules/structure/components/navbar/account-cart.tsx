@@ -46,7 +46,7 @@ export function AccountCart() {
           {itemsCount > 0 && (
             <span
               className="
-                absolute -top-1 -right-2
+                absolute -top-2 -right-2
                 min-w-[18px] h-[18px]
                 rounded-full
                 bg-neutral-900 text-white

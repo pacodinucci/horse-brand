@@ -11,16 +11,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileNavbar } from "./navbar/mobile-navbar";
 import { MobileSidebar } from "./sidebar/mobile-sidebar";
 import { useCallback, useState } from "react";
-import { authClient } from "@/lib/auth-client";
 
 export default function HermesLandingSkeleton() {
   const isMobile = useIsMobile();
   const [openSidebar, setOpenSidebar] = useState(false);
   const openMenu = useCallback(() => setOpenSidebar(true), []);
   const closeMenu = useCallback(() => setOpenSidebar(false), []);
-
-  const { data: session } = authClient.useSession();
-  console.log("Session --> ", session);
 
   return (
     <main className="min-h-[200vh] bg-zinc-100 text-neutral-900">

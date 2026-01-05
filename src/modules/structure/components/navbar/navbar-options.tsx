@@ -1,8 +1,11 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Poppins } from "next/font/google";
 import { MenuSection } from "./menu-section";
-import { SectionKey, MENU_DATA, MENU_KEYS } from "@/lib/data";
+import { useTRPC } from "@/trpc/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -11,9 +14,28 @@ const poppins = Poppins({
 
 type Props = { className?: string };
 
+// Slug fallback mientras tu DB devuelve slug: null
+function slugify(input: string) {
+  return input
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // saca tildes
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
 export function NavbarOptions({ className }: Props) {
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const [activeKey, setActiveKey] = useState<SectionKey | null>(null);
+  const router = useRouter();
+  const trpc = useTRPC();
+  const { data } = useSuspenseQuery(trpc.category.getMany.queryOptions({}));
+
+  const categories = data.items ?? [];
+
+  // key del menú = category.id (estable)
+  const [activeId, setActiveId] = useState<string | null>(null);
+
   // ---- Subrayado que crece 1ª vez y luego se traslada ----
   const [underline, setUnderline] = useState({
     left: 0,
@@ -21,6 +43,8 @@ export function NavbarOptions({ className }: Props) {
     visible: false,
     mode: "grow" as "grow" | "slide",
   });
+
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   const underlineTo = (el: HTMLButtonElement) => {
     const wrap = wrapRef.current;
@@ -51,8 +75,8 @@ export function NavbarOptions({ className }: Props) {
   const scheduleHide = () => {
     if (hideTimer.current) clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => {
-      setActiveKey(null);
-      setUnderline((u) => ({ ...u, visible: false, mode: "grow" })); // prepara el próximo grow
+      setActiveId(null);
+      setUnderline((u) => ({ ...u, visible: false, mode: "grow" }));
     }, 120);
   };
   const cancelHide = () => {
@@ -68,15 +92,15 @@ export function NavbarOptions({ className }: Props) {
     setDropdownTop(rect.bottom);
   };
 
-  const openMenu = (key: SectionKey, el: HTMLButtonElement) => {
-    setActiveKey(key);
+  const openMenu = (categoryId: string, el: HTMLButtonElement) => {
+    setActiveId(categoryId);
     cancelHide();
     underlineTo(el);
     placeDropdown();
   };
 
   useEffect(() => {
-    if (!activeKey) return;
+    if (!activeId) return;
     const onRecalc = () => placeDropdown();
     window.addEventListener("scroll", onRecalc, { passive: true });
     window.addEventListener("resize", onRecalc);
@@ -84,7 +108,29 @@ export function NavbarOptions({ className }: Props) {
       window.removeEventListener("scroll", onRecalc);
       window.removeEventListener("resize", onRecalc);
     };
-  }, [activeKey]);
+  }, [activeId]);
+
+  // armamos los props para MenuSection desde la categoría activa
+  const activeSection = useMemo(() => {
+    if (!activeId) return null;
+    const cat = categories.find((c) => c.id === activeId);
+    if (!cat) return null;
+
+    const title = cat.name;
+    const catSlug = cat.slug ?? slugify(cat.name);
+
+    return {
+      title,
+      image: { src: "/chair.png", alt: title },
+      links: (cat.subcategories ?? []).map((s) => {
+        const subSlug = s.slug ?? slugify(s.name);
+        return {
+          label: s.name,
+          href: `category/${catSlug}/${subSlug}`,
+        };
+      }),
+    };
+  }, [activeId, categories]);
 
   return (
     <div
@@ -94,19 +140,20 @@ export function NavbarOptions({ className }: Props) {
       onMouseEnter={cancelHide}
     >
       {/* Botones */}
-      {MENU_KEYS.map((key) => (
+      {categories.map((cat) => (
         <button
-          key={key}
+          key={cat.id}
           type="button"
-          onMouseEnter={(e) => openMenu(key, e.currentTarget)}
-          onFocus={(e) => openMenu(key, e.currentTarget)}
+          onMouseEnter={(e) => openMenu(cat.id, e.currentTarget)}
+          onFocus={(e) => openMenu(cat.id, e.currentTarget)}
           className={`
             ${poppins.className}
             uppercase text-xs font-semibold tracking-wider cursor-pointer relative py-4 px-8
             text-neutral-800 hover:text-black outline-none
           `}
+          onClick={() => router.push(`/category/${cat.id}`)}
         >
-          {key}
+          {cat.name}
         </button>
       ))}
 
@@ -124,15 +171,15 @@ export function NavbarOptions({ className }: Props) {
         className="pointer-events-none absolute bottom-0 h-px bg-black"
       />
 
-      {/* Panel dropdown: ocupa todo el ancho del viewport */}
-      {activeKey && (
+      {/* Panel dropdown */}
+      {activeSection && (
         <div
           onMouseEnter={cancelHide}
           onMouseLeave={scheduleHide}
           className="fixed left-0 right-0 z-50 bg-zinc-50"
           style={{ top: dropdownTop ?? 0 }}
         >
-          <MenuSection {...MENU_DATA[activeKey]} />
+          <MenuSection {...activeSection} />
         </div>
       )}
     </div>

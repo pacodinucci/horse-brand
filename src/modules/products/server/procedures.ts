@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
-import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  baseProcedure,
+} from "@/trpc/init";
 import db from "@/lib/db";
 import {
   DEFAULT_PAGE,
@@ -370,6 +374,55 @@ export const productsRouter = createTRPCRouter({
         skippedExisting: allNames.length - created - invalid.length,
         skippedInvalid: invalid.length,
         invalid, // útil para mostrar detalle en UI
+      };
+    }),
+
+  getByCategoryId: baseProcedure
+    .input(
+      z.object({
+        categoryId: z.string().uuid(),
+        page: z.number().default(DEFAULT_PAGE),
+        pageSize: z
+          .number()
+          .min(MIN_PAGE_SIZE)
+          .max(MAX_PAGE_SIZE)
+          .default(DEFAULT_PAGE_SIZE),
+        search: z.string().nullish(),
+        subCategoryId: z.string().uuid().nullish(), // opcional
+      })
+    )
+    .query(async ({ input }) => {
+      const { categoryId, page, pageSize, search, subCategoryId } = input;
+
+      const where: Prisma.ProductWhereInput = {
+        categoryId,
+        ...(subCategoryId ? { subCategoryId } : {}),
+        ...(search
+          ? {
+              name: { contains: search, mode: Prisma.QueryMode.insensitive },
+            }
+          : {}),
+      };
+
+      const [items, total] = await Promise.all([
+        db.product.findMany({
+          where,
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+          include: {
+            category: true,
+            subCategory: true,
+            ProductVariant: true,
+          },
+        }),
+        db.product.count({ where }),
+      ]);
+
+      return {
+        items,
+        total,
+        totalPages: Math.ceil(total / pageSize),
       };
     }),
 });

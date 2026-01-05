@@ -1,15 +1,86 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileNavbar } from "../navbar/mobile-navbar";
 import { MobileSidebar } from "../sidebar/mobile-sidebar";
 import { Navbar } from "../navbar/navbar";
-import { CategoryImageGallery } from "./category-image-gallery";
+import { CategoryImageGallery, GalleryItem } from "./category-image-gallery";
 import { EditorialSection } from "./category-editorial-section";
 import { MobileCategoryImageGallery } from "./mobile-category-image-gallery";
+import { useTRPC } from "@/trpc/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
-export const CategoryView = () => {
+export const PRODUCT_PLACEHOLDER_IMAGES = [
+  "/cat1.png",
+  "/cat2.png",
+  "/cat3.png",
+  "/cat4.png",
+  "/cat5.png",
+  "/cat6.png",
+  "/cat7.png",
+  "/cat8.png",
+  "/cat9.png",
+  "/cat10.png",
+  "/cat11.png",
+  "/cat12.png",
+];
+
+function hashStringToNumber(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+export function pickStableImages(productId: string, pool: string[], count = 4) {
+  if (!pool.length) return [];
+  const seed = hashStringToNumber(productId);
+  const out: string[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const idx = (seed + i * 31) % pool.length;
+    out.push(pool[idx]);
+  }
+
+  return out;
+}
+
+interface CategoryViewProps {
+  categoryId: string;
+}
+
+const formatPriceARS = (value: number) =>
+  value.toLocaleString("es-AR", { style: "currency", currency: "ARS" });
+
+export const CategoryView = ({ categoryId }: CategoryViewProps) => {
+  const trpc = useTRPC();
+  const { data } = useSuspenseQuery(
+    trpc.products.getByCategoryId.queryOptions({ categoryId })
+  );
+
+  const items: GalleryItem[] = useMemo(() => {
+    return (data.items ?? []).map((p) => {
+      const imgs =
+        p.images && p.images.length > 0
+          ? p.images
+          : pickStableImages(p.id, PRODUCT_PLACEHOLDER_IMAGES, 5);
+
+      const base = imgs[0];
+      const hover = imgs.filter((src) => src !== base).slice(0, 4);
+
+      return {
+        id: p.id,
+        image: base,
+        hoverImages: hover.length ? hover : [base],
+        title: p.name,
+        price: typeof p.price === "number" ? formatPriceARS(p.price) : p.price,
+      };
+    });
+  }, [data.items]);
+
   const isMobile = useIsMobile();
   const [openSidebar, setOpenSidebar] = useState(false);
   const openMenu = useCallback(() => setOpenSidebar(true), []);
@@ -94,10 +165,16 @@ export const CategoryView = () => {
         </div>
       ) : (
         <div className="min-h-screen bg-zinc-100">
-          <CategoryImageGallery count={3} />
-          <CategoryImageGallery count={2} asymetric inverse />
-          <CategoryImageGallery count={6} />
-          <CategoryImageGallery count={2} asymetric />
+          <CategoryImageGallery items={items} count={3} />
+          <CategoryImageGallery
+            items={items.slice(3)}
+            count={2}
+            asymetric
+            inverse
+          />
+          <CategoryImageGallery items={items.slice(5)} count={6} />
+          <CategoryImageGallery items={items.slice(11)} count={2} asymetric />
+
           <EditorialSection
             image={{
               src: "/editorial1.png",
