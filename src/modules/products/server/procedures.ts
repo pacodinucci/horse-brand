@@ -82,7 +82,7 @@ export const productsRouter = createTRPCRouter({
       return createdProduct;
     }),
 
-  getMany: protectedProcedure
+  getMany: baseProcedure
     .input(
       z.object({
         page: z.number().default(DEFAULT_PAGE),
@@ -128,7 +128,7 @@ export const productsRouter = createTRPCRouter({
       };
     }),
 
-  getOne: protectedProcedure
+  getOne: baseProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       const product = await db.product.findFirst({
