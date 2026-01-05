@@ -8,12 +8,12 @@ import { ProductDetail } from "./product-detail";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-const stripImages = [
-  { src: "/bag.png", alt: "Vista frontal" },
-  { src: "/cat8.png", alt: "Vista lateral" },
-  { src: "/cat9.png", alt: "Detalle hebilla" },
-  { src: "/cat10.png", alt: "Vista detrás" },
-];
+// const stripImages = [
+//   { src: "/bag.png", alt: "Vista frontal" },
+//   { src: "/cat8.png", alt: "Vista lateral" },
+//   { src: "/cat9.png", alt: "Detalle hebilla" },
+//   { src: "/cat10.png", alt: "Vista detrás" },
+// ];
 
 const PRODUCT_PLACEHOLDER_IMAGES = [
   "/cat1.png",

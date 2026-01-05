@@ -13,7 +13,6 @@ import { getColumns } from "../components/columns";
 import { useState } from "react";
 import { StockFormDialog } from "../components/stock-form-dialog";
 import { StockGetOne } from "../../types";
-import { StockFormProps } from "../components/stock-form";
 import { toast } from "sonner";
 // import { DataPagination } from "@/components/data-pagination";
 
@@ -22,7 +21,21 @@ export const StockView = () => {
   const queryClient = useQueryClient();
   const { data } = useSuspenseQuery(trpc.stock.getMany.queryOptions({}));
 
-  const [selectedRow, setSelectedRow] = useState<StockFormProps | null>(null);
+  // const [selectedRow, setSelectedRow] = useState<StockFormProps | null>(null);
+  const [selectedRow, setSelectedRow] = useState<StockGetOne | null>(null);
+
+  // const getInitialValues = (row: StockGetOne) => ({
+  //   id: row.id,
+  //   productId: row.ProductVariant?.product?.id ?? "",
+  //   warehouseId: row.warehouse?.id ?? "",
+  //   quantity: row.quantity,
+  //   sku: row.ProductVariant?.sku ?? "",
+  //   attributes:
+  //     typeof row.ProductVariant?.attributes === "object" &&
+  //     row.ProductVariant?.attributes !== null
+  //       ? row.ProductVariant.attributes
+  //       : {},
+  // });
 
   const getInitialValues = (row: StockGetOne) => ({
     id: row.id,
@@ -30,11 +43,9 @@ export const StockView = () => {
     warehouseId: row.warehouse?.id ?? "",
     quantity: row.quantity,
     sku: row.ProductVariant?.sku ?? "",
-    attributes:
-      typeof row.ProductVariant?.attributes === "object" &&
-      row.ProductVariant?.attributes !== null
-        ? row.ProductVariant.attributes
-        : {},
+    color: row.ProductVariant?.color ?? "",
+    material: row.ProductVariant?.material ?? "",
+    measure: row.ProductVariant?.measure ?? "",
   });
 
   const removeStock = useMutation(
@@ -77,10 +88,9 @@ export const StockView = () => {
         />
       )}
       <div className="flex-1 pb-4 px-4 md:px-8 flex flex-col gap-y-4">
-        <DataTable
-          data={data.items}
+        <DataTable<StockGetOne, unknown>
+          data={data.items as StockGetOne[]}
           columns={getColumns({ onDelete: handleDelete })}
-          // onRowClick={(row) => router.push(`/backoffice/stock/${row.id}`)}
           onRowClick={(row) => setSelectedRow(row)}
         />
         {/* <DataPagination /> */}

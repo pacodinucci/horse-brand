@@ -19,12 +19,9 @@ export const getColumns = ({
     cell: ({ row }) => {
       const variant = row.original.ProductVariant;
       const productName = variant?.product?.name || "";
-      const attrs = variant?.attributes
-        ? Object.entries(variant.attributes)
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            .map(([_, value]) => ` ${value}`)
-            .join("  ")
-        : "";
+      const attrs = [variant?.color, variant?.material, variant?.measure]
+        .filter(Boolean)
+        .join(" · ");
 
       return `${productName}${attrs ? " - " + attrs : ""}`;
     },

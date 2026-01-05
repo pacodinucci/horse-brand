@@ -1,11 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   useMutation,
   useQueryClient,
   useSuspenseQuery,
+  useQuery,
 } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -28,7 +30,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useEffect, useState } from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 type ProductForStockForm = {
   id: string;
@@ -70,10 +86,21 @@ export const StockForm = ({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
+  const [productSearch, setProductSearch] = useState("");
+
   // Productos y depósitos
-  const { data: productsData } = useSuspenseQuery(
-    trpc.products.getMany.queryOptions({})
-  );
+  // const { data: productsData } = useSuspenseQuery(
+  //   trpc.products.getMany.queryOptions({})
+  // );
+  const { data: productsData, isFetching: isSearchingProducts } = useQuery({
+    ...trpc.products.getMany.queryOptions({
+      page: 1,
+      pageSize: 20,
+      search: productSearch || null,
+    }),
+    // para que no pegue al server con string vacío (opcional)
+    staleTime: 10_000,
+  });
   const { data: warehousesData } = useSuspenseQuery(
     trpc.warehouse.getMany.queryOptions({})
   );
@@ -192,45 +219,88 @@ export const StockForm = ({
   return (
     <Form {...form}>
       <form className="space-y-4 py-4 max-w-3xl" onSubmit={onSubmit}>
-        {/* Producto */}
+        {/* Producto (con búsqueda) */}
         <FormField
           name="productId"
           control={form.control}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Producto</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    setSelectedProduct(
-                      productsData?.items.find(
-                        (p: ProductForStockForm) => p.id === value
-                      )
-                    );
-                    // Reset de selecciones al cambiar producto
-                    form.setValue("color", "");
-                    form.setValue("material", "");
-                    form.setValue("measure", "");
-                  }}
-                  disabled={isPending}
-                >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Seleccionar producto" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {productsData?.items.map((p: ProductForStockForm) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const selectedName =
+              productsData?.items.find(
+                (p: ProductForStockForm) => p.id === field.value
+              )?.name ?? "";
+
+            return (
+              <FormItem className="flex flex-col">
+                <FormLabel>Producto</FormLabel>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        role="combobox"
+                        disabled={isPending}
+                        className={cn(
+                          "justify-between bg-white",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? selectedName : "Seleccionar producto"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+
+                  <PopoverContent className="p-0" align="start">
+                    <Command>
+                      <CommandInput
+                        placeholder="Buscar producto..."
+                        value={productSearch}
+                        onValueChange={setProductSearch}
+                      />
+
+                      <CommandList>
+                        <CommandEmpty>
+                          {isSearchingProducts
+                            ? "Buscando..."
+                            : "No se encontraron productos."}
+                        </CommandEmpty>
+
+                        <CommandGroup>
+                          {productsData?.items.map((p: ProductForStockForm) => (
+                            <CommandItem
+                              key={p.id}
+                              value={p.name}
+                              onSelect={() => {
+                                field.onChange(p.id);
+                                setSelectedProduct(p);
+                                form.setValue("color", "");
+                                form.setValue("material", "");
+                                form.setValue("measure", "");
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  p.id === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {p.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         {/* Depósito */}

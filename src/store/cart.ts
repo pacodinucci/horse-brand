@@ -7,8 +7,11 @@ export type CartItem = {
   price: number;
   image?: string;
   quantity: number;
-  // Puedes agregar atributos como size, color, etc.
-  attributes?: Record<string, string>;
+  productId: string;
+  productVariantId: string;
+  color?: string;
+  material?: string;
+  measure?: string;
 };
 
 type CartState = {

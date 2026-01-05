@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
+import {
+  baseProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+} from "@/trpc/init";
 import db from "@/lib/db";
 import {
   categoryInsertSchema,
@@ -15,7 +19,7 @@ import {
 } from "@/constants";
 
 export const categoryRouter = createTRPCRouter({
-  getMany: protectedProcedure
+  getMany: baseProcedure
     .input(
       z.object({
         page: z.number().default(DEFAULT_PAGE),

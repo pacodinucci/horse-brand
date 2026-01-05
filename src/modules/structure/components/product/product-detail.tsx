@@ -197,18 +197,22 @@ export const ProductDetail = ({ product, heroImage }: ProductDetailProps) => {
     (typeof product.description === "string" && product.description.trim()) ||
     LOREM18;
 
+  const productVariantId = availability?.productVariantId ?? null;
+
   const handleAddToCart = () => {
+    if (!productVariantId) return;
+
     addItem({
-      id: product.id,
+      id: productVariantId, // ideal: usar la variante como id del item
+      productId: product.id,
+      productVariantId, // redundante si id=variantId, pero claro
       name: product.name,
       price: product.price,
       image: imageSrc,
       quantity: 1,
-      // productVariantId,
-      // si tu CartItem lo permite, acá conviene persistir selecciones:
-      // color: selectedColor,
-      // material: selectedMaterial,
-      // measure: selectedMeasure,
+      color: selectedColor ?? undefined,
+      material: selectedMaterial ?? undefined,
+      measure: selectedMeasure ?? undefined,
     });
   };
 
@@ -301,7 +305,7 @@ export const ProductDetail = ({ product, heroImage }: ProductDetailProps) => {
           <Separator className="h-[.5px] bg-slate-300" />
 
           <Button
-            disabled={isFetching || !hasStock}
+            disabled={isFetching || !hasStock || !productVariantId}
             className={[
               "w-1/2 self-center rounded-none text-sm font-light my-4 hidden md:flex items-center",
               !hasStock ? "opacity-50 cursor-not-allowed" : "cursor-pointer",

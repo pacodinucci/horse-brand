@@ -58,7 +58,11 @@ const formatPriceARS = (value: number) =>
 export const CategoryView = ({ categoryId }: CategoryViewProps) => {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
-    trpc.products.getByCategoryId.queryOptions({ categoryId })
+    trpc.products.getByCategoryId.queryOptions({
+      categoryId,
+      page: 1,
+      pageSize: 100,
+    })
   );
 
   const items: GalleryItem[] = useMemo(() => {

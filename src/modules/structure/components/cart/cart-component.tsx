@@ -7,24 +7,27 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
-const MOCK_CART_ITEMS = [
-  {
-    id: "1edc8b5f-04a6-4a3b-a013-369e21133850",
-    name: "Banquito Niño",
-    price: 215000,
-    image:
-      "https://res.cloudinary.com/dhqdyyxbd/image/upload/v1759325444/kbyigm06ni3wqagkf8be.jpg",
-    quantity: 1,
-  },
-];
+function buildVariantLine(item: {
+  color?: string;
+  material?: string;
+  measure?: string;
+}) {
+  const parts = [
+    item.color?.trim(),
+    item.material?.trim(),
+    item.measure?.trim(),
+  ].filter(Boolean);
+
+  return parts.join(" · ");
+}
 
 export const CartComponent = () => {
   const router = useRouter();
-  // const cartItems = useCartStore((state) => state.items);
+  const cartItems = useCartStore((state) => state.items);
   const removeItem = useCartStore((state) => state.removeItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
 
-  const cartItems = MOCK_CART_ITEMS;
+  console.log(cartItems);
 
   const subtotal = cartItems.reduce(
     (acc: number, item) => acc + item.price * item.quantity,
@@ -71,7 +74,20 @@ export const CartComponent = () => {
                       height={54}
                       className="rounded"
                     />
-                    <span className="text-base font-medium">{item.name}</span>
+                    <div className="flex flex-col">
+                      <span className="text-base font-medium">{item.name}</span>
+
+                      {(() => {
+                        const variantLine = buildVariantLine(item);
+                        if (!variantLine) return null;
+
+                        return (
+                          <span className="text-xs text-neutral-500 mt-1">
+                            {variantLine}
+                          </span>
+                        );
+                      })()}
+                    </div>
                   </td>
 
                   <td className="py-6">
