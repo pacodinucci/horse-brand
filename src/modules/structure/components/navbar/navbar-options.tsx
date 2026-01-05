@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Poppins } from "next/font/google";
 import { MenuSection } from "./menu-section";
-import { useTRPC } from "@/trpc/client";
-import { useSuspenseQuery } from "@tanstack/react-query";
+// import { useTRPC } from "@/trpc/client";
+// import { useSuspenseQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
 const poppins = Poppins({
@@ -12,7 +12,15 @@ const poppins = Poppins({
   weight: ["100", "400", "500", "600"],
 });
 
-type Props = { className?: string };
+type Props = {
+  className?: string;
+  categories: Array<{
+    id: string;
+    name: string;
+    slug: string | null;
+    subcategories: Array<{ id: string; name: string; slug: string | null }>;
+  }>;
+};
 
 // Slug fallback mientras tu DB devuelve slug: null
 function slugify(input: string) {
@@ -26,12 +34,12 @@ function slugify(input: string) {
     .replace(/-+/g, "-");
 }
 
-export function NavbarOptions({ className }: Props) {
+export function NavbarOptions({ className, categories }: Props) {
   const router = useRouter();
-  const trpc = useTRPC();
-  const { data } = useSuspenseQuery(trpc.category.getMany.queryOptions({}));
+  // const trpc = useTRPC();
+  // const { data } = useSuspenseQuery(trpc.category.getMany.queryOptions({}));
 
-  const categories = data.items ?? [];
+  // const categories = data.items ?? [];
 
   // key del menú = category.id (estable)
   const [activeId, setActiveId] = useState<string | null>(null);

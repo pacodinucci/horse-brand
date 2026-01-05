@@ -2,34 +2,61 @@ import { auth } from "@/lib/auth";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { headers } from "next/headers";
 import { cache } from "react";
+// export const createTRPCContext = cache(async () => {
+//   /**
+//    * @see: https://trpc.io/docs/server/context
+//    */
+//   return { userId: "user_123" };
+// });
 export const createTRPCContext = cache(async () => {
-  /**
-   * @see: https://trpc.io/docs/server/context
-   */
-  return { userId: "user_123" };
+  const session = await auth.api
+    .getSession({ headers: await headers() })
+    .catch(() => null);
+
+  return {
+    session, // session | null
+  };
 });
+
 // Avoid exporting the entire t-object
 // since it's not very descriptive.
 // For instance, the use of a t variable
 // is common in i18n libraries.
-const t = initTRPC.create({
-  /**
-   * @see https://trpc.io/docs/server/data-transformers
-   */
-  // transformer: superjson,
-});
+// const t = initTRPC.create({
+//   /**
+//    * @see https://trpc.io/docs/server/data-transformers
+//    */
+//   // transformer: superjson,
+// });
+const t = initTRPC.context<typeof createTRPCContext>().create();
+
 // Base router and procedure helpers
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
-export const baseProcedure = t.procedure;
-export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
 
-  if (!session) {
+export const baseProcedure = t.procedure;
+
+// export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
+//   const session = await auth.api.getSession({
+//     headers: await headers(),
+//   });
+
+//   if (!session) {
+//     throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
+//   }
+
+//   return next({ ctx: { ...ctx, auth: session } });
+// });
+
+export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.session) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
   }
 
-  return next({ ctx: { ...ctx, auth: session } });
+  return next({
+    ctx: {
+      ...ctx,
+      session: ctx.session,
+    },
+  });
 });

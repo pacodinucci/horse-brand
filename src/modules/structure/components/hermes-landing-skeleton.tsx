@@ -12,7 +12,18 @@ import { MobileNavbar } from "./navbar/mobile-navbar";
 import { MobileSidebar } from "./sidebar/mobile-sidebar";
 import { useCallback, useState } from "react";
 
-export default function HermesLandingSkeleton() {
+interface HermesLandingSkeletonProps {
+  categories: Array<{
+    id: string;
+    name: string;
+    slug: string | null;
+    subcategories: Array<{ id: string; name: string; slug: string | null }>;
+  }>;
+}
+
+export default function HermesLandingSkeleton({
+  categories,
+}: HermesLandingSkeletonProps) {
   const isMobile = useIsMobile();
   const [openSidebar, setOpenSidebar] = useState(false);
   const openMenu = useCallback(() => setOpenSidebar(true), []);
@@ -27,7 +38,7 @@ export default function HermesLandingSkeleton() {
         </>
       ) : (
         <div className="absolute top-0 left-0 w-full z-50">
-          <Navbar />
+          <Navbar categories={categories} />
         </div>
       )}
       <HeroBanner title="Horse Brand" imageUrl="/silla-landing.png" />
