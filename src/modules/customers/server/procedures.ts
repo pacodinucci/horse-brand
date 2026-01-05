@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
-import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
+import {
+  baseProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+} from "@/trpc/init";
 import db from "@/lib/db";
 import { TRPCError } from "@trpc/server";
 import { customerInsertSchema, customerUpdateSchema } from "../schemas";
@@ -17,7 +21,7 @@ export const customersRouter = createTRPCRouter({
 
       return customer;
     }),
-  create: protectedProcedure
+  create: baseProcedure
     .input(customerInsertSchema)
     .mutation(async ({ input }) => {
       const customer = await db.customer.create({
