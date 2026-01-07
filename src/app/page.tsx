@@ -2,7 +2,7 @@ import HermesLandingSkeleton from "@/modules/structure/components/hermes-landing
 import { getCategoriesForNavbar } from "@/modules/structure/components/navbar/server";
 
 const HermesStructurePage = async () => {
-  const categoriesResult = await getCategoriesForNavbar(); // caller directo
+  const categoriesResult = await getCategoriesForNavbar();
   const categories = categoriesResult.items ?? [];
 
   return <HermesLandingSkeleton categories={categories} />;

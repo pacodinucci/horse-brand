@@ -44,7 +44,13 @@ export const useCartStore = create<CartState>()(
         set((state) => ({
           items: state.items.filter((item) => item.id !== id),
         })),
-      clearCart: () => set({ items: [] }),
+      clearCart: () => {
+        set({ items: [] });
+
+        try {
+          localStorage.removeItem("cart-storage");
+        } catch {}
+      },
       updateQuantity: (id, quantity) =>
         set((state) => ({
           items: state.items.map((item) =>

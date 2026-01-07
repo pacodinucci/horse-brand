@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       data: {
         customerId,
         status: "pending",
-        total: cart.reduce((sum, item) => sum + item.price * item.quantity, 0), // <-- este campo ES OBLIGATORIO
+        total: cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
         items: {
           create: cart.map((item) => ({
             productVariantId: item.id,
@@ -58,13 +58,14 @@ export async function POST(req: Request) {
         back_urls: {
           success:
             process.env.MP_SUCCESS_URL ||
-            "https://horse-brand.vercel.app/success",
+            // "https://horse-brand.vercel.app/success",
+            "https://f24d331ffe77.ngrok-free.app/success",
           failure:
             process.env.MP_FAILURE_URL ||
-            "https://8cd24c98782f.ngrok-free.app/failure",
+            "https://horse-brand.vercel.app/failure",
           pending:
             process.env.MP_PENDING_URL ||
-            "https://8cd24c98782f.ngrok-free.app/pending",
+            "https://horse-brand.vercel.app/pending",
         },
         auto_return: "approved",
         external_reference: order.id,
@@ -75,6 +76,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ init_point: preference.init_point });
   } catch (err) {
     console.error("MP ERROR:", err);
+    // console.error("MP ERROR message:", err?.message);
+    // console.error("MP ERROR status:", err?.status ?? err?.response?.status);
+    // console.error("MP ERROR data:", err?.response?.data ?? err?.cause);
+
     return NextResponse.json(
       { error: "Error procesando el pago" },
       { status: 500 }
