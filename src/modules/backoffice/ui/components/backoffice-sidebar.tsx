@@ -10,7 +10,6 @@ import {
   Users,
   ShoppingBag,
   Warehouse,
-  Store,
 } from "lucide-react";
 import {
   Sidebar,
@@ -33,11 +32,6 @@ const firstSection = [
     icon: House,
     label: "Inicio",
     href: "/backoffice",
-  },
-  {
-    icon: Store,
-    label: "Tiendas",
-    href: "/backoffice/stores",
   },
   {
     icon: ShoppingBag,

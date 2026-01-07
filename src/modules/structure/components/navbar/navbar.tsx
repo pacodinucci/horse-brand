@@ -8,19 +8,9 @@ import { NavbarOptions } from "./navbar-options";
 interface NavbarProps {
   onFixedChange?: (isFixed: boolean) => void;
   onMainVisibleChange?: (visible: boolean) => void;
-  categories: Array<{
-    id: string;
-    name: string;
-    slug: string | null;
-    subcategories: Array<{ id: string; name: string; slug: string | null }>;
-  }>;
 }
 
-export function Navbar({
-  onFixedChange,
-  onMainVisibleChange,
-  categories,
-}: NavbarProps) {
+export function Navbar({ onFixedChange, onMainVisibleChange }: NavbarProps) {
   const isSticky = useSticky();
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -152,7 +142,7 @@ export function Navbar({
           isOptionsFixed ? { top: mainShownByScrollUp ? mainH : 0 } : undefined
         }
       >
-        <NavbarOptions categories={categories} />
+        <NavbarOptions />
       </div>
     </nav>
   );

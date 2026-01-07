@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Poppins } from "next/font/google";
 import { MenuSection } from "./menu-section";
-// import { useTRPC } from "@/trpc/client";
-// import { useSuspenseQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useCategoriesStore, type NavbarCategory } from "@/store/categories";
+import { useTRPC } from "@/trpc/client";
+import { useQuery } from "@tanstack/react-query";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -14,37 +15,63 @@ const poppins = Poppins({
 
 type Props = {
   className?: string;
-  categories: Array<{
-    id: string;
-    name: string;
-    slug: string | null;
-    subcategories: Array<{ id: string; name: string; slug: string | null }>;
-  }>;
+  categories?: NavbarCategory[];
 };
 
-// Slug fallback mientras tu DB devuelve slug: null
 function slugify(input: string) {
   return input
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // saca tildes
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9\s-]/g, "")
     .trim()
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
 }
 
-export function NavbarOptions({ className, categories }: Props) {
+export function NavbarOptions({
+  className,
+  categories: categoriesProp,
+}: Props) {
   const router = useRouter();
-  // const trpc = useTRPC();
-  // const { data } = useSuspenseQuery(trpc.category.getMany.queryOptions({}));
 
-  // const categories = data.items ?? [];
+  const trpc = useTRPC();
+  const {
+    categories: storeCategories,
+    loaded,
+    setCategories,
+  } = useCategoriesStore();
+
+  const hasStore = loaded && storeCategories.length > 0;
+  const hasProps = (categoriesProp?.length ?? 0) > 0;
+
+  // 1) si no hay store y no vinieron props, fetch público
+  const q = trpc.category.getMany.queryOptions({ page: 1, pageSize: 50 });
+  const { data } = useQuery({
+    ...q,
+    enabled: !hasStore && !hasProps,
+  });
+
+  // 2) hidratar store desde props (cuando / te las pasa)
+  useEffect(() => {
+    if (!hasStore && hasProps) {
+      setCategories(categoriesProp!);
+    }
+  }, [hasStore, hasProps, categoriesProp, setCategories]);
+
+  // 3) hidratar store desde fetch (cuando entras directo a /category)
+  useEffect(() => {
+    if (!hasStore && !hasProps && data?.items?.length) {
+      setCategories(data.items);
+    }
+  }, [hasStore, hasProps, data?.items, setCategories]);
+
+  // fuente final: store (siempre)
+  const categories = storeCategories;
 
   // key del menú = category.id (estable)
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  // ---- Subrayado que crece 1ª vez y luego se traslada ----
   const [underline, setUnderline] = useState({
     left: 0,
     width: 0,
@@ -78,7 +105,6 @@ export function NavbarOptions({ className, categories }: Props) {
     }
   };
 
-  // ---- Apertura/cierre del dropdown con tolerancia para mover el mouse ----
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scheduleHide = () => {
     if (hideTimer.current) clearTimeout(hideTimer.current);
@@ -91,7 +117,6 @@ export function NavbarOptions({ className, categories }: Props) {
     if (hideTimer.current) clearTimeout(hideTimer.current);
   };
 
-  // ---- Top absoluto para que el dropdown ocupe todo el ancho de pantalla ----
   const [dropdownTop, setDropdownTop] = useState<number | null>(null);
   const placeDropdown = () => {
     const el = wrapRef.current;
@@ -118,7 +143,6 @@ export function NavbarOptions({ className, categories }: Props) {
     };
   }, [activeId]);
 
-  // armamos los props para MenuSection desde la categoría activa
   const activeSection = useMemo(() => {
     if (!activeId) return null;
     const cat = categories.find((c) => c.id === activeId);
@@ -134,11 +158,14 @@ export function NavbarOptions({ className, categories }: Props) {
         const subSlug = s.slug ?? slugify(s.name);
         return {
           label: s.name,
-          href: `category/${catSlug}/${subSlug}`,
+          href: `/category/${catSlug}/${subSlug}`, // 👈 agregué slash
         };
       }),
     };
   }, [activeId, categories]);
+
+  // Si todavía no hay categorías, no renderices botones
+  if (!categories.length) return null;
 
   return (
     <div
@@ -147,7 +174,6 @@ export function NavbarOptions({ className, categories }: Props) {
       onMouseLeave={scheduleHide}
       onMouseEnter={cancelHide}
     >
-      {/* Botones */}
       {categories.map((cat) => (
         <button
           key={cat.id}
@@ -165,7 +191,6 @@ export function NavbarOptions({ className, categories }: Props) {
         </button>
       ))}
 
-      {/* Subrayado único */}
       <span
         style={{
           left: underline.left,
@@ -179,7 +204,6 @@ export function NavbarOptions({ className, categories }: Props) {
         className="pointer-events-none absolute bottom-0 h-px bg-black"
       />
 
-      {/* Panel dropdown */}
       {activeSection && (
         <div
           onMouseEnter={cancelHide}
