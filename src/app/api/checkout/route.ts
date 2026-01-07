@@ -58,8 +58,7 @@ export async function POST(req: Request) {
         back_urls: {
           success:
             process.env.MP_SUCCESS_URL ||
-            // "https://horse-brand.vercel.app/success",
-            "https://f24d331ffe77.ngrok-free.app/success",
+            "https://horse-brand.vercel.app/success",
           failure:
             process.env.MP_FAILURE_URL ||
             "https://horse-brand.vercel.app/failure",
