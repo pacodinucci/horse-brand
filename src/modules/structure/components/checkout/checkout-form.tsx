@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,12 +24,13 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { customerInsertSchema } from "@/modules/customers/schemas";
 import { useCartStore } from "@/store/cart";
+import { authClient } from "@/lib/auth-client";
 
 const checkoutSchema = z.object({
-  location: z.string().min(1, "Seleccioná una ubicación"), // country
+  location: z.string().min(1, "Seleccioná una ubicación"),
   firstName: z.string().min(1, "Ingresá tu nombre"),
   lastName: z.string().min(1, "Ingresá tus apellidos"),
   email: z.string().email("Ingresá un email válido"),
@@ -44,9 +45,32 @@ const checkoutSchema = z.object({
 type CheckoutValues = z.infer<typeof checkoutSchema>;
 type CustomerValues = z.infer<typeof customerInsertSchema>;
 
+function splitName(fullName: string | null | undefined) {
+  const parts = (fullName ?? "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { firstName: "", lastName: "" };
+  if (parts.length === 1) return { firstName: parts[0]!, lastName: "" };
+  return { firstName: parts[0]!, lastName: parts.slice(1).join(" ") };
+}
+
+function splitPhone(raw: string | null | undefined) {
+  const phone = (raw ?? "").trim();
+  const prefixMatch = phone.match(/^\+\d{1,3}/);
+  const phonePrefix = prefixMatch?.[0] ?? "+54";
+  const phoneNumber = phone.replace(phonePrefix, "").trim();
+  return { phonePrefix, phoneNumber };
+}
+
 export const CheckoutForm = () => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+
+  const { data: session, isPending: isSessionPending } =
+    authClient.useSession();
+
+  const userEmail = useMemo(() => {
+    const e = session?.user?.email;
+    return e ? e.trim().toLowerCase() : null;
+  }, [session?.user?.email]);
 
   const cartItems = useCartStore((state) => state.items);
 
@@ -72,10 +96,57 @@ export const CheckoutForm = () => {
 
   const mutation = useMutation(trpc.customers.create.mutationOptions());
 
+  // ✅ Query customer existente por email (solo cuando sesión ya cargó)
+  const customerQuery = useQuery(
+    trpc.customers.findByEmail.queryOptions(
+      { email: userEmail ?? "" },
+      {
+        enabled:
+          !isSessionPending &&
+          !!userEmail &&
+          !savedValues &&
+          !form.formState.isDirty,
+        staleTime: 60_000,
+      }
+    )
+  );
+
+  // ✅ Prefill cuando llega el customer
+  useEffect(() => {
+    const customer = customerQuery.data;
+    if (!customer) return;
+
+    // No re-pisar si ya lo seteaste por submit
+    if (customerId) return;
+
+    setCustomerId(customer.id);
+
+    const { firstName, lastName } = splitName(customer.name);
+    const { phonePrefix, phoneNumber } = splitPhone(customer.phone);
+
+    const nextValues: CheckoutValues = {
+      location: customer.country ?? "Argentina",
+      firstName,
+      lastName,
+      email: customer.email ?? userEmail ?? "",
+      company: "", // no está en Customer actualmente
+      address1: customer.address ?? "",
+      city: customer.city ?? "",
+      postalCode: customer.zipCode ?? "",
+      phonePrefix,
+      phoneNumber,
+    };
+
+    form.reset(nextValues);
+
+    // 👉 Si querés que al entrar muestre el RESUMEN directamente, descomentá:
+    // setSavedValues(nextValues);
+  }, [customerQuery.data, customerId, form, userEmail]);
+
   const onSubmit = (values: CheckoutValues) => {
     const payload: CustomerValues = {
       name: `${values.firstName} ${values.lastName}`.trim(),
-      email: values.email.trim(),
+      email: values.email.trim().toLowerCase(), // ✅ normaliza
       phone: `${values.phonePrefix} ${values.phoneNumber}`.trim(),
       address: values.address1,
       city: values.city,
@@ -118,13 +189,8 @@ export const CheckoutForm = () => {
 
       const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          cart: cartItems,
-          customerId,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cart: cartItems, customerId }),
       });
 
       const data = await res.json();

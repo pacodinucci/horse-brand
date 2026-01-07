@@ -9,6 +9,10 @@ import db from "@/lib/db";
 import { TRPCError } from "@trpc/server";
 import { customerInsertSchema, customerUpdateSchema } from "../schemas";
 
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
 export const customersRouter = createTRPCRouter({
   findByEmail: protectedProcedure
     .input(z.object({ email: z.string().email() }))
@@ -21,19 +25,68 @@ export const customersRouter = createTRPCRouter({
 
       return customer;
     }),
+  // create: baseProcedure
+  //   .input(customerInsertSchema)
+  //   .mutation(async ({ input }) => {
+  //     const customer = await db.customer.create({
+  //       data: {
+  //         name: input.name,
+  //         email: input.email,
+  //         phone: input.phone,
+  //         address: input.address,
+  //       },
+  //     });
+  //     return customer;
+  //   }),
   create: baseProcedure
     .input(customerInsertSchema)
     .mutation(async ({ input }) => {
-      const customer = await db.customer.create({
-        data: {
-          name: input.name,
-          email: input.email,
-          phone: input.phone,
-          address: input.address,
-        },
-      });
-      return customer;
+      const email = normalizeEmail(input.email);
+
+      try {
+        const customer = await db.customer.upsert({
+          where: { email },
+          create: {
+            name: input.name,
+            email,
+            phone: input.phone,
+            address: input.address,
+            city: input.city,
+            state: input.state,
+            country: input.country,
+            zipCode: input.zipCode,
+          },
+          update: {
+            name: input.name,
+            phone: input.phone,
+            address: input.address,
+            city: input.city,
+            state: input.state,
+            country: input.country,
+            zipCode: input.zipCode,
+          },
+        });
+
+        return customer;
+      } catch (err: unknown) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
+          if (err.code === "P2002") {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message: "Ya existe un cliente con ese email.",
+              cause: err,
+            });
+          }
+        }
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "No se pudo crear/actualizar el cliente",
+          cause: err,
+        });
+      }
     }),
+
   getMany: protectedProcedure
     .input(
       z.object({
