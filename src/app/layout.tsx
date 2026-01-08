@@ -4,7 +4,7 @@ import "./globals.css";
 import { TRPCReactProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next";
-import { WhatsAppButton } from "@/modules/structure/components/whatsapp/whatsapp-button";
+import { WhatsAppButtonGuard } from "@/modules/structure/components/whatsapp/whatsapp-button-guard";
 
 const lato = Lato({
   variable: "--font-lato",
@@ -29,9 +29,10 @@ export default function RootLayout({
           <body className={`${lato.className}  antialiased`}>
             <Toaster />
             {children}
-            <WhatsAppButton
+            <WhatsAppButtonGuard
               phoneE164="5491140851990"
               message="Hola! Estoy en la tienda de Horse Brand y quiero consultar por un producto."
+              hiddenPrefixes={["/backoffice"]}
             />
           </body>
         </html>
