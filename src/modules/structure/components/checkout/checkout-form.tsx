@@ -28,6 +28,8 @@ import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { customerInsertSchema } from "@/modules/customers/schemas";
 import { useCartStore } from "@/store/cart";
 import { authClient } from "@/lib/auth-client";
+import { SiMercadopago } from "react-icons/si";
+import { useRouter } from "next/navigation";
 
 const checkoutSchema = z.object({
   location: z.string().min(1, "Seleccioná una ubicación"),
@@ -61,6 +63,7 @@ function splitPhone(raw: string | null | undefined) {
 }
 
 export const CheckoutForm = () => {
+  const router = useRouter();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -76,7 +79,9 @@ export const CheckoutForm = () => {
 
   const [savedValues, setSavedValues] = useState<CheckoutValues | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
-  const [isPaying, setIsPaying] = useState(false);
+  const [isPayingMp, setIsPayingMp] = useState(false);
+  const [isCreatingTransfer, setIsCreatingTransfer] = useState(false);
+  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
 
   const form = useForm<CheckoutValues>({
     resolver: zodResolver(checkoutSchema),
@@ -161,6 +166,7 @@ export const CheckoutForm = () => {
         toast.success("Datos guardados correctamente.");
         setSavedValues(values);
         setCustomerId(customer.id);
+        setShowPaymentMethods(false);
       },
       onError: (err) => {
         toast.error(err.message || "Error al guardar los datos");
@@ -171,21 +177,15 @@ export const CheckoutForm = () => {
   const handleEdit = () => {
     if (savedValues) form.reset(savedValues);
     setSavedValues(null);
+    setShowPaymentMethods(false);
   };
 
   const handlePay = async () => {
-    if (!customerId) {
-      toast.error("Faltan los datos del cliente.");
-      return;
-    }
-
-    if (!cartItems.length) {
-      toast.error("Tu carrito está vacío.");
-      return;
-    }
+    if (!customerId) return toast.error("Faltan los datos del cliente.");
+    if (!cartItems.length) return toast.error("Tu carrito está vacío.");
 
     try {
-      setIsPaying(true);
+      setIsPayingMp(true);
 
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -211,7 +211,39 @@ export const CheckoutForm = () => {
       console.error("Error llamando a MP:", error);
       toast.error("No se pudo conectar con Mercado Pago");
     } finally {
-      setIsPaying(false);
+      setIsPayingMp(false);
+    }
+  };
+
+  const createFromCart = useMutation(
+    trpc.orders.createFromCart.mutationOptions()
+  );
+
+  const handleBankTransfer = async () => {
+    if (!customerId) return toast.error("Faltan los datos del cliente.");
+    if (!cartItems.length) return toast.error("Tu carrito está vacío.");
+
+    try {
+      setIsCreatingTransfer(true);
+
+      const order = await createFromCart.mutateAsync({
+        customerId,
+        paymentMethod: "BANK_TRANSFER",
+        cart: cartItems.map((i) => ({
+          id: i.id,
+          quantity: i.quantity,
+          price: i.price,
+          name: i.name,
+        })),
+      });
+
+      router.push(`/checkout/tf?orderId=${order.id}`);
+    } catch (e: unknown) {
+      if (e instanceof Error)
+        toast.error(e.message || "No se pudo iniciar la transferencia");
+      else toast.error("Error al crear la orden");
+    } finally {
+      setIsCreatingTransfer(false);
     }
   };
 
@@ -281,23 +313,58 @@ export const CheckoutForm = () => {
           </div>
 
           <div className="pt-4 flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="px-6 py-3 rounded-sm text-[11px] tracking-[0.18em] uppercase"
-              onClick={handleEdit}
-            >
-              Modificar
-            </Button>
-            <Button
-              type="button"
-              variant="default"
-              className="px-6 py-3 rounded-sm text-[11px] tracking-[0.18em] uppercase"
-              onClick={handlePay}
-              disabled={isPaying || !customerId}
-            >
-              {isPaying ? "Redirigiendo..." : "Continuar con el pago"}
-            </Button>
+            {!showPaymentMethods ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="px-6 py-3 rounded-sm text-[11px] tracking-[0.18em] uppercase cursor-pointer"
+                  onClick={handleEdit}
+                >
+                  Modificar
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="default"
+                  className="px-6 py-3 rounded-sm text-[11px] tracking-[0.18em] uppercase cursor-pointer"
+                  onClick={() => setShowPaymentMethods(true)}
+                  disabled={!customerId}
+                >
+                  Continuar con el pago
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="px-6 py-3 rounded-sm text-[11px] tracking-[0.18em] uppercase cursor-pointer"
+                  onClick={handleBankTransfer}
+                  disabled={isCreatingTransfer || !customerId}
+                >
+                  {isCreatingTransfer
+                    ? "Generando pedido..."
+                    : "Pagar con transferencia"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="default"
+                  className="px-6 py-3 rounded-sm text-[11px] tracking-[0.18em] uppercase cursor-pointer"
+                  onClick={handlePay}
+                  disabled={isPayingMp || !customerId}
+                >
+                  {isPayingMp ? (
+                    "Redirigiendo a Mercado Pago..."
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <SiMercadopago /> Pagar con Mercado Pago
+                    </span>
+                  )}
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}

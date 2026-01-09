@@ -28,6 +28,7 @@ export async function POST(req: Request) {
       data: {
         customerId,
         status: "pending",
+        paymentMethod: "MERCADO_PAGO",
         total: cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
         items: {
           create: cart.map((item) => ({

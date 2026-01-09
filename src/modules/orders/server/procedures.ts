@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
-import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
+import {
+  baseProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+} from "@/trpc/init";
 import db from "@/lib/db";
 import { TRPCError } from "@trpc/server";
 
@@ -155,5 +159,49 @@ export const ordersRouter = createTRPCRouter({
       }
       await db.order.delete({ where: { id: input.id } });
       return { success: true };
+    }),
+
+  createFromCart: baseProcedure
+    .input(
+      z.object({
+        customerId: z.string(),
+        paymentMethod: z.enum(["transfer", "mp"]),
+        cart: z.array(
+          z.object({
+            id: z.string(), // productVariantId
+            quantity: z.number().min(1),
+            price: z.number().min(0), // por ahora, como tu /api/checkout
+            name: z.string().optional(),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const status =
+        input.paymentMethod === "transfer" ? "awaiting_transfer" : "pending";
+
+      const total = input.cart.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
+
+      const order = await db.order.create({
+        data: {
+          customerId: input.customerId,
+          status,
+          total,
+          items: {
+            create: input.cart.map((item) => ({
+              productVariantId: item.id,
+              quantity: item.quantity,
+              unitPrice: item.price,
+              subtotal: item.price * item.quantity,
+            })),
+          },
+        },
+        include: { items: true, Customer: true },
+      });
+
+      return order;
     }),
 });
