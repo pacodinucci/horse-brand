@@ -23,10 +23,14 @@ function ItemCard({
   widthClass?: string;
 }) {
   const router = useRouter();
-  const slides = item.hoverImages.length ? item.hoverImages : [item.image];
-  const track = [slides[slides.length - 1], ...slides, slides[0]];
+  const slides = [item.image, ...item.hoverImages].filter(
+    (src, i, arr) => arr.indexOf(src) === i
+  );
 
-  const [idx, setIdx] = useState(1);
+  const track = [slides[slides.length - 1], ...slides, slides[0]];
+  const startIdx = slides.length > 1 ? 2 : 1;
+
+  const [idx, setIdx] = useState(startIdx);
   const [isAnimating, setIsAnimating] = useState(false);
   const [jumping, setJumping] = useState(false);
   const sliderRef = useRef<HTMLDivElement | null>(null);
@@ -71,7 +75,7 @@ function ItemCard({
 
   const resetHover = () => {
     setIsAnimating(false);
-    hardSetIndex(1);
+    hardSetIndex(startIdx);
   };
 
   return (
