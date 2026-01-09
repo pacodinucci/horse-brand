@@ -229,6 +229,7 @@ export const CheckoutForm = () => {
       const order = await createFromCart.mutateAsync({
         customerId,
         paymentMethod: "BANK_TRANSFER",
+        paymentStatus: "PENDING",
         cart: cartItems.map((i) => ({
           id: i.id,
           quantity: i.quantity,

@@ -93,7 +93,7 @@ export const ordersRouter = createTRPCRouter({
     .input(
       z.object({
         customerId: z.string(),
-        status: z.string(),
+        paymentStatus: z.enum(["PENDING", "PAID", "FAILED", "CANCELLED"]),
         total: z.number(),
         items: z.array(
           z.object({
@@ -109,7 +109,7 @@ export const ordersRouter = createTRPCRouter({
       const order = await db.order.create({
         data: {
           customerId: input.customerId,
-          status: input.status,
+          paymentStatus: input.paymentStatus,
           total: input.total,
           items: {
             create: input.items.map((item) => ({
@@ -130,14 +130,14 @@ export const ordersRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
-        status: z.string(),
+        paymentStatus: z.enum(["PENDING", "PAID", "FAILED", "CANCELLED"]),
       })
     )
     .mutation(async ({ input }) => {
       const order = await db.order.update({
         where: { id: input.id },
         data: {
-          status: input.status,
+          paymentStatus: input.paymentStatus,
         },
         include: { items: true, Customer: true },
       });
@@ -165,7 +165,8 @@ export const ordersRouter = createTRPCRouter({
     .input(
       z.object({
         customerId: z.string(),
-        paymentMethod: z.enum(["transfer", "mp"]),
+        paymentMethod: z.enum(["BANK_TRANSFER", "MERCADO_PAGO"]),
+        paymentStatus: z.enum(["PENDING", "PAID", "FAILED", "CANCELLED"]),
         cart: z.array(
           z.object({
             id: z.string(), // productVariantId
@@ -177,8 +178,8 @@ export const ordersRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input }) => {
-      const status =
-        input.paymentMethod === "transfer" ? "awaiting_transfer" : "pending";
+      // const status =
+      //   input.paymentMethod === "transfer" ? "awaiting_transfer" : "pending";
 
       const total = input.cart.reduce(
         (sum, item) => sum + item.price * item.quantity,
@@ -188,7 +189,8 @@ export const ordersRouter = createTRPCRouter({
       const order = await db.order.create({
         data: {
           customerId: input.customerId,
-          status,
+          paymentMethod: input.paymentMethod,
+          paymentStatus: input.paymentStatus,
           total,
           items: {
             create: input.cart.map((item) => ({

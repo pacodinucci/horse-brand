@@ -1,7 +1,10 @@
 import { TfView } from "@/modules/structure/components/checkout/tf-view";
 
-const Page = () => {
-  return <TfView />;
+type PageProps = {
+  searchParams?: { orderId?: string };
 };
 
-export default Page;
+export default function Page({ searchParams }: PageProps) {
+  const orderId = searchParams?.orderId ?? null;
+  return <TfView orderId={orderId} />;
+}

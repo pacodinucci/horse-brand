@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     const order = await db.order.create({
       data: {
         customerId,
-        status: "pending",
+        paymentStatus: "PENDING",
         paymentMethod: "MERCADO_PAGO",
         total: cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
         items: {

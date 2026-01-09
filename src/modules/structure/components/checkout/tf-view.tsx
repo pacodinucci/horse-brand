@@ -1,14 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
-import { useSearchParams } from "next/navigation";
 import { CartHeader } from "../cart/cart-header";
 import { CheckoutSteps } from "../cart/checkout-steps";
 
-export const TfView = () => {
-  const searchParams = useSearchParams();
-  const orderId = searchParams.get("orderId");
+type TfViewProps = {
+  orderId: string | null;
+};
 
+export const TfView = ({ orderId }: TfViewProps) => {
   const orderNumber = useMemo(() => {
     if (!orderId) return null;
     const parts = orderId.split("-");
