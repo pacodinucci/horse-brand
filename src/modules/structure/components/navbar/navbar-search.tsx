@@ -1,39 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PiMagnifyingGlassThin } from "react-icons/pi";
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@/trpc/client";
 
 type SearchResult = {
   id: string;
-  type: "product" | "category";
+  type: "product" | "category" | "subcategory";
   title: string;
   subtitle?: string;
   href: string;
 };
-
-const MOCK_RESULTS: SearchResult[] = [
-  {
-    id: "p-1",
-    type: "product",
-    title: "Banquito Niño",
-    subtitle: "$215.000",
-    href: "/product/banquito-nino",
-  },
-  {
-    id: "c-1",
-    type: "category",
-    title: "Sillones",
-    subtitle: "Categoría",
-    href: "/category/sillones",
-  },
-  {
-    id: "p-2",
-    type: "product",
-    title: "Mesa Ratona Roble",
-    subtitle: "$320.000",
-    href: "/product/mesa-ratona-roble",
-  },
-];
 
 function useDebouncedValue<T>(value: T, delay = 200) {
   const [debounced, setDebounced] = useState(value);
@@ -45,19 +23,19 @@ function useDebouncedValue<T>(value: T, delay = 200) {
 }
 
 export const NavbarSearch = () => {
+  const trpc = useTRPC();
+
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, 200);
 
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Abrir modal cuando empieza a tipear (y mantenerlo abierto mientras haya query o foco)
   useEffect(() => {
-    if (query.trim().length > 0) setOpen(true);
-    if (query.trim().length === 0) setOpen(false);
+    const q = query.trim();
+    setOpen(q.length > 0);
   }, [query]);
 
-  // Cerrar con ESC
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -71,13 +49,13 @@ export const NavbarSearch = () => {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
-  const results = useMemo(() => {
-    const q = debouncedQuery.trim().toLowerCase();
-    if (!q) return [];
-    return MOCK_RESULTS.filter((r) =>
-      (r.title + " " + (r.subtitle ?? "")).toLowerCase().includes(q)
-    ).slice(0, 8);
-  }, [debouncedQuery]);
+  const q = debouncedQuery.trim();
+
+  const { data: results = [], isFetching } = useQuery({
+    ...trpc.search.global.queryOptions({ q, limit: 8 }),
+    enabled: q.length > 0,
+    staleTime: 30_000,
+  });
 
   return (
     <div className="flex items-center gap-2 text-neutral-700">
@@ -113,9 +91,8 @@ export const NavbarSearch = () => {
         open={open}
         query={query}
         results={results}
-        onClose={() => {
-          setOpen(false);
-        }}
+        isLoading={isFetching}
+        onClose={() => setOpen(false)}
         onClear={() => {
           setQuery("");
           setOpen(false);
@@ -130,12 +107,14 @@ function SearchResultsModal({
   open,
   query,
   results,
+  isLoading,
   onClose,
   onClear,
 }: {
   open: boolean;
   query: string;
   results: SearchResult[];
+  isLoading: boolean;
   onClose: () => void;
   onClear: () => void;
 }) {
@@ -144,17 +123,14 @@ function SearchResultsModal({
   const q = query.trim();
 
   return (
-    <div className="fixed inset-0 z-[200]">
-      {/* Overlay */}
+    <div className="fixed inset-0 z-[9999]">
       <button
         aria-label="Cerrar búsqueda"
         className="absolute inset-0 bg-black/35"
         onClick={onClose}
       />
 
-      {/* Panel */}
       <div className="absolute left-1/2 top-24 w-[min(720px,calc(100vw-24px))] -translate-x-1/2 rounded-2xl bg-white shadow-2xl ring-1 ring-black/10">
-        {/* Header: query */}
         <div className="flex items-center justify-between gap-3 border-b border-neutral-200 px-4 py-3">
           <div className="min-w-0">
             <p className="text-xs text-neutral-500">Buscando</p>
@@ -187,10 +163,16 @@ function SearchResultsModal({
           </div>
         </div>
 
-        {/* Results */}
         <div className="max-h-[60vh] overflow-auto p-2">
           {q.length === 0 ? (
             <EmptyState />
+          ) : isLoading ? (
+            <div className="px-3 py-8 text-center">
+              <p className="text-sm text-neutral-700">Buscando...</p>
+              <p className="mt-1 text-xs text-neutral-500">
+                Consultando productos, categorías y subcategorías.
+              </p>
+            </div>
           ) : results.length === 0 ? (
             <div className="px-3 py-8 text-center">
               <p className="text-sm text-neutral-700">Sin resultados</p>
@@ -218,7 +200,11 @@ function SearchResultsModal({
                     </div>
 
                     <span className="shrink-0 rounded-full border border-neutral-200 px-2 py-1 text-[10px] uppercase tracking-wide text-neutral-600">
-                      {r.type === "product" ? "Producto" : "Categoría"}
+                      {r.type === "product"
+                        ? "Producto"
+                        : r.type === "category"
+                        ? "Categoría"
+                        : "Subcategoría"}
                     </span>
                   </a>
                 </li>
@@ -227,11 +213,8 @@ function SearchResultsModal({
           )}
         </div>
 
-        {/* Footer */}
         <div className="border-t border-neutral-200 px-4 py-3">
-          <p className="text-xs text-neutral-500">
-            Enter (luego) para buscar, Esc para cerrar.
-          </p>
+          <p className="text-xs text-neutral-500">Esc para cerrar.</p>
         </div>
       </div>
     </div>
