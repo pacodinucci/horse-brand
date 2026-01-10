@@ -7,6 +7,7 @@ import { stockRouter } from "@/modules/stock/server/procedures";
 import { customersRouter } from "@/modules/customers/server/procedures";
 import { ordersRouter } from "@/modules/orders/server/procedures";
 import { searchRouter } from "./search";
+import { backofficeRouter } from "./backoffice-search";
 
 export const appRouter = createTRPCRouter({
   products: productsRouter,
@@ -17,6 +18,7 @@ export const appRouter = createTRPCRouter({
   customers: customersRouter,
   orders: ordersRouter,
   search: searchRouter,
+  backoffice: backofficeRouter,
 });
 
 export type AppRouter = typeof appRouter;
