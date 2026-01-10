@@ -1,12 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  // output   = "../src/generated/prisma"
   output   = "../node_modules/.prisma/client"
 }
 
@@ -16,48 +9,45 @@ datasource db {
 }
 
 model Product {
-  id            String   @id @unique @default(uuid())
-  name          String   @unique
-  categoryId    String
-  subCategoryId String
-  images        String[] @default([])
-  colors        String[] @default([])
-  materials     String[] @default([])
-  measures      String[] @default([])
-  price         Int
-  supplier      String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
+  id             String           @id @unique @default(uuid())
+  name           String           @unique
+  categoryId     String
+  subCategoryId  String
+  images         String[]         @default([])
+  colors         String[]         @default([])
+  materials      String[]         @default([])
+  measures       String[]         @default([])
+  price          Int
+  supplier       String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
   category       Category         @relation(fields: [categoryId], references: [id])
   subCategory    Subcategory      @relation(fields: [subCategoryId], references: [id])
-  Stock          Stock[]
   ProductVariant ProductVariant[]
+  Stock          Stock[]
 }
 
 model Category {
-  id          String   @id @unique @default(uuid())
-  name        String   @unique
-  slug        String?  @unique
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  id            String        @id @unique @default(uuid())
+  name          String        @unique
+  slug          String?       @unique
+  description   String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   products      Product[]
   subcategories Subcategory[]
 }
 
 model Subcategory {
-  id          String   @id @unique @default(uuid())
+  id          String    @id @unique @default(uuid())
   name        String
   slug        String?
   description String?
   categoryId  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  category Category  @relation(fields: [categoryId], references: [id])
-  products Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+  category    Category  @relation(fields: [categoryId], references: [id])
 }
 
 model Warehouse {
@@ -66,41 +56,36 @@ model Warehouse {
   location  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  stocks Stock[]
+  stocks    Stock[]
 }
 
 model ProductVariant {
-  id        String  @id @default(uuid())
-  productId String
-  sku       String? @unique
-
-  color    String?
-  material String?
-  measure  String?
-
-  product Product @relation(fields: [productId], references: [id])
-  stock   Stock[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String      @id @default(uuid())
+  productId  String
+  sku        String?     @unique
+  color      String?
+  material   String?
+  measure    String?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  orderItems OrderItem[]
+  product    Product     @relation(fields: [productId], references: [id])
+  stock      Stock[]
 
   @@unique([productId, color, material, measure])
 }
 
 model Stock {
-  id          String @id @default(uuid())
-  warehouseId String
-  productId   String
-  quantity    Int
-
-  warehouse        Warehouse       @relation(fields: [warehouseId], references: [id])
+  id               String          @id @default(uuid())
+  warehouseId      String
+  productId        String
+  quantity         Int
+  productVariantId String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
   product          Product         @relation(fields: [productId], references: [id])
   ProductVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
-  productVariantId String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  warehouse        Warehouse       @relation(fields: [warehouseId], references: [id])
 }
 
 model Customer {
@@ -115,8 +100,91 @@ model Customer {
   zipCode   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  orders    Order[]
+}
 
-  orders Order[]
+model Order {
+  id                String        @id @default(uuid())
+  customerId        String
+  total             Int
+  paymentMethod     PaymentMethod @default(MERCADO_PAGO)
+  paymentStatus     PaymentStatus @default(PENDING)
+  externalReference String?
+  createdAt         DateTime      @default(now())
+  delivered         Boolean       @default(false)
+  deliveredAt       DateTime?     @db.Timestamptz(6)
+  Customer          Customer      @relation(fields: [customerId], references: [id])
+  items             OrderItem[]
+}
+
+model OrderItem {
+  id               String         @id @default(uuid())
+  orderId          String
+  productVariantId String
+  quantity         Int
+  unitPrice        Int
+  subtotal         Int
+  order            Order          @relation(fields: [orderId], references: [id])
+  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean
+  image         String?
+  role          UserRole  @default(USER)
+  createdAt     DateTime
+  updatedAt     DateTime
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
 }
 
 enum PaymentMethod {
@@ -131,91 +199,8 @@ enum PaymentStatus {
   CANCELLED
 }
 
-model Order {
-  id                String        @id @default(uuid())
-  customerId        String
-  total             Int
-  paymentMethod     PaymentMethod @default(MERCADO_PAGO)
-  paymentStatus     PaymentStatus @default(PENDING)
-  externalReference String?
-  createdAt         DateTime      @default(now())
-  items             OrderItem[]
-  Customer          Customer      @relation(fields: [customerId], references: [id])
-}
-
-model OrderItem {
-  id               String @id @default(uuid())
-  orderId          String
-  productVariantId String
-  quantity         Int
-  unitPrice        Int
-  subtotal         Int
-  order            Order  @relation(fields: [orderId], references: [id])
-}
-
 enum UserRole {
   USER
   ADMIN
   SUPERADMIN
-}
-
-model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean
-  image         String?
-  role          UserRole  @default(USER)
-  createdAt     DateTime
-  updatedAt     DateTime
-  sessions      Session[]
-  accounts      Account[]
-
-  @@unique([email])
-  @@map("user")
-}
-
-model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String
-  createdAt DateTime
-  updatedAt DateTime
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([token])
-  @@map("session")
-}
-
-model Account {
-  id                    String    @id
-  accountId             String
-  providerId            String
-  userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accessToken           String?
-  refreshToken          String?
-  idToken               String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope                 String?
-  password              String?
-  createdAt             DateTime
-  updatedAt             DateTime
-
-  @@map("account")
-}
-
-model Verification {
-  id         String    @id
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime?
-  updatedAt  DateTime?
-
-  @@map("verification")
 }

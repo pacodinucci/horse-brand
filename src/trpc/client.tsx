@@ -7,7 +7,13 @@ import { createTRPCContext } from "@trpc/tanstack-react-query";
 import { useState } from "react";
 import { makeQueryClient } from "./query-client";
 import type { AppRouter } from "./routers/_app";
+import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
+
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
+
+// 👉 EXPORTS DE TIPOS (CLAVE)
+export type RouterInputs = inferRouterInputs<AppRouter>;
+export type RouterOutputs = inferRouterOutputs<AppRouter>;
 let browserQueryClient: QueryClient;
 function getQueryClient() {
   if (typeof window === "undefined") {

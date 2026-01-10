@@ -54,6 +54,7 @@ export async function GET() {
     { header: "Medidas", key: "Medidas", width: 24 }, // join de measures
     { header: "Precio", key: "Precio", width: 12 },
     { header: "Proveedor", key: "Proveedor", width: 20 },
+    { header: "Imagenes", key: "Imagenes", width: 80 },
   ];
   ws.getRow(1).font = { bold: true };
 
@@ -70,6 +71,7 @@ export async function GET() {
       Medidas: joinArr(p.measures), // medidas suelen tener "2x3", no forzamos mayúscula
       Precio: p.price ?? 0,
       Proveedor: p.supplier ?? "",
+      Imagenes: p.images.join(", "),
     });
   }
 

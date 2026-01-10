@@ -22,6 +22,7 @@ import {
   categoryWithSubsInsertSchema,
   categoryWithSubsUpdateSchema,
 } from "../../schemas";
+import { Trash2Icon } from "lucide-react";
 
 // Schemas
 // const subcategorySchema = z.object({
@@ -214,33 +215,15 @@ export function CategoryForm({
                     </FormItem>
                   )}
                 />
-                {/* <FormField
-                  name={`subcategories.${index}.description`}
-                  control={form.control}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Descripción</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="Descripción (opcional)"
-                          className="bg-white"
-                          value={field.value ?? ""} // <-- esto lo fuerza a string
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                /> */}
                 <Button
                   type="button"
                   variant="destructive"
                   size="sm"
                   onClick={() => remove(index)}
-                  className="mb-2"
+                  className="cursor-pointer"
                   disabled={fields.length === 1}
                 >
-                  Quitar
+                  <Trash2Icon />
                 </Button>
               </div>
             ))}

@@ -164,12 +164,14 @@ export const StockForm = ({
   const onSubmit = form.handleSubmit((values) => {
     // Enviá color/material/measure en lugar de attributes
     if (isEdit && initialValues?.id) {
+      console.log("values --> ", values);
       updateStock.mutate({
         ...values,
         id: initialValues.id,
         quantity: Number(values.quantity),
       });
     } else {
+      console.log("values --> ", values);
       createStock.mutate({
         ...values,
         quantity: Number(values.quantity),

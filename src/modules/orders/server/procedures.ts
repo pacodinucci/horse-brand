@@ -76,15 +76,25 @@ export const ordersRouter = createTRPCRouter({
         where: { id: input.id },
         include: {
           Customer: true,
-          items: true, // o podés incluir producto/variant
+          items: {
+            include: {
+              productVariant: {
+                include: {
+                  product: true, // para name, images, etc.
+                },
+              },
+            },
+          },
         },
       });
+
       if (!order) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Orden no encontrada.",
         });
       }
+
       return order;
     }),
 
@@ -205,5 +215,27 @@ export const ordersRouter = createTRPCRouter({
       });
 
       return order;
+    }),
+
+  setDeliveredStatus: protectedProcedure
+    .input(z.object({ id: z.string(), delivered: z.boolean() }))
+    .mutation(async ({ input }) => {
+      return db.order.update({
+        where: { id: input.id },
+        data: {
+          delivered: input.delivered,
+          deliveredAt: input.delivered ? new Date() : null,
+        },
+        include: {
+          Customer: true,
+          items: {
+            include: {
+              productVariant: {
+                include: { product: true },
+              },
+            },
+          },
+        },
+      });
     }),
 });

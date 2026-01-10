@@ -24,19 +24,6 @@ export const StockView = () => {
   // const [selectedRow, setSelectedRow] = useState<StockFormProps | null>(null);
   const [selectedRow, setSelectedRow] = useState<StockGetOne | null>(null);
 
-  // const getInitialValues = (row: StockGetOne) => ({
-  //   id: row.id,
-  //   productId: row.ProductVariant?.product?.id ?? "",
-  //   warehouseId: row.warehouse?.id ?? "",
-  //   quantity: row.quantity,
-  //   sku: row.ProductVariant?.sku ?? "",
-  //   attributes:
-  //     typeof row.ProductVariant?.attributes === "object" &&
-  //     row.ProductVariant?.attributes !== null
-  //       ? row.ProductVariant.attributes
-  //       : {},
-  // });
-
   const getInitialValues = (row: StockGetOne) => ({
     id: row.id,
     productId: row.ProductVariant?.product?.id ?? "",
