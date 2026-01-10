@@ -114,8 +114,8 @@ export default function ProductView({ productId }: ProductViewProps) {
             <aside
               className={`
                 sticky
-                -mt-240
-                ${navMainScrollUpVisible ? "top-[128px]" : "top-[48px]"}
+                -mt-225
+                ${navMainScrollUpVisible ? "top-[17.5vh]" : "top-[5.9vh]"}
                 self-start
                 space-y-4
                 max-w-[400px]
