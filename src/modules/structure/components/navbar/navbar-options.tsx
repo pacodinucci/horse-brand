@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useCategoriesStore, type NavbarCategory } from "@/store/categories";
 import { useTRPC } from "@/trpc/client";
 import { useQuery } from "@tanstack/react-query";
+import type { UrlObject } from "url";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -149,16 +150,22 @@ export function NavbarOptions({
     if (!cat) return null;
 
     const title = cat.name;
-    const catSlug = cat.slug ?? slugify(cat.name);
+
+    // Si tu routing es por slug, cambiá acá a slug (pero en tu Page actual es por id)
+    const categoryPath = `/category/${cat.id}`;
 
     return {
       title,
       image: { src: "/chair.png", alt: title },
       links: (cat.subcategories ?? []).map((s) => {
-        const subSlug = s.slug ?? slugify(s.name);
+        const href: UrlObject = {
+          pathname: categoryPath,
+          query: { subcategoryId: s.id },
+        };
+
         return {
           label: s.name,
-          href: `/category/${catSlug}/${subSlug}`, // 👈 agregué slash
+          href,
         };
       }),
     };

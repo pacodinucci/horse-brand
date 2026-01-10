@@ -1,8 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { UrlObject } from "url";
 
-type MegaLink = { label: string; href: string };
-type MegaImage = { src: string; alt: string; caption?: string };
+type MegaLink = {
+  label: string;
+  href: string | UrlObject;
+};
+
+type MegaImage = {
+  src: string;
+  alt: string;
+  caption?: string;
+};
 
 type MenuSectionProps = {
   title: string;
@@ -33,7 +42,6 @@ export function MenuSection({
   const imgH = image.heightPx ?? 180;
 
   return (
-    // 👉 ocupa todo el ancho de pantalla
     <div
       className={[
         "w-screen bg-zinc-50 text-neutral-900 px-8",
@@ -42,7 +50,6 @@ export function MenuSection({
       role="menu"
       aria-label={title}
     >
-      {/* 👉 contenedor centrado con ancho máximo, pero con offset a la derecha */}
       <div
         className={[maxWidthClass, "px-6 py-6"].join(" ")}
         style={{ paddingLeft: contentOffsetPx }}
@@ -54,9 +61,8 @@ export function MenuSection({
           <div className="mt-2 h-px w-24 bg-neutral-800" />
         </header>
 
-        {/* 👉 En desktop la 1ª col mide 'auto' (lo que ocupa la imagen), y la 2ª rellena */}
         <div className="grid grid-cols-12 gap-8 md:grid-cols-[auto_1fr]">
-          {/* Imagen izquierda con ancho fijo */}
+          {/* Imagen izquierda */}
           <div className="col-span-12 md:col-span-1">
             <div
               className="relative overflow-hidden rounded-md"
@@ -81,27 +87,34 @@ export function MenuSection({
             </div>
           </div>
 
-          {/* Enlaces derecha (toma el resto) */}
+          {/* Links derecha */}
           <nav className="col-span-12 md:col-span-1 flex items-start">
             <ul className="w-full grid gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
-              {links.map((l) => (
-                <li key={l.label}>
-                  <Link
-                    href={l.href}
-                    className="
-                      block w-fit uppercase tracking-wider
-                      text-neutral-700 hover:text-neutral-900
-                      relative outline-none
-                      after:content-[''] after:absolute after:left-0 after:-bottom-1
-                      after:block after:h-px after:w-0 after:bg-neutral-900
-                      after:transition-[width] after:duration-200
-                      hover:after:w-full focus-visible:after:w-full
-                    "
-                  >
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
+              {links.map((l) => {
+                const key =
+                  typeof l.href === "string"
+                    ? l.href
+                    : `${l.href.pathname}-${l.label}`;
+
+                return (
+                  <li key={key}>
+                    <Link
+                      href={l.href}
+                      className="
+                        block w-fit uppercase tracking-wider
+                        text-neutral-700 hover:text-neutral-900
+                        relative outline-none
+                        after:content-[''] after:absolute after:left-0 after:-bottom-1
+                        after:block after:h-px after:w-0 after:bg-neutral-900
+                        after:transition-[width] after:duration-200
+                        hover:after:w-full focus-visible:after:w-full
+                      "
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
         </div>

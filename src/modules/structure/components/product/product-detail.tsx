@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-
 import { poppins } from "@/lib/fonts";
 import { Separator } from "@radix-ui/react-select";
 import { Button } from "@/components/ui/button";
@@ -60,14 +59,13 @@ function OptionAccordionRow({
   label: string;
   value: string | null;
   options: string[];
-  itemValue: string; // id del AccordionItem
+  itemValue: string;
   isOpen: boolean;
   onToggle: () => void;
   onSelect: (v: string) => void;
 }) {
   if (!options.length) return null;
 
-  // Si hay 1 sola opción, lo mostramos como texto (sin acordeón)
   if (options.length === 1) {
     return (
       <>
@@ -84,10 +82,8 @@ function OptionAccordionRow({
     <>
       <AccordionItem value={itemValue} className="border-0">
         <AccordionTrigger
-          // Mantengo el look de tus triggers y evito subrayado si tu lib lo agrega
           className="p-0 no-underline hover:no-underline"
           onClick={(e) => {
-            // Trigger ya maneja el open/close, pero esto te permite controlar el estado externo si querés
             e.stopPropagation();
             onToggle();
           }}
@@ -161,7 +157,6 @@ export const ProductDetail = ({ product, heroImage }: ProductDetailProps) => {
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
   const [selectedMeasure, setSelectedMeasure] = useState<string | null>(null);
 
-  // Un solo acordeón abierto a la vez (como en tu ejemplo).
   const [openAttr, setOpenAttr] = useState<string>("");
 
   const trpc = useTRPC();
@@ -185,13 +180,12 @@ export const ProductDetail = ({ product, heroImage }: ProductDetailProps) => {
   const availableStock = availability?.available ?? 0;
   const hasStock = !isFetching && availableStock > 0;
 
-  // Defaults (primer valor) al montar / cambiar producto
   useEffect(() => {
     setSelectedColor(colors[0] ?? null);
     setSelectedMaterial(materials[0] ?? null);
     setSelectedMeasure(measures[0] ?? null);
     setOpenAttr("");
-  }, [product.id]); // importantísimo
+  }, [product.id, colors, materials, measures]);
 
   const description =
     (typeof product.description === "string" && product.description.trim()) ||
@@ -203,9 +197,9 @@ export const ProductDetail = ({ product, heroImage }: ProductDetailProps) => {
     if (!productVariantId) return;
 
     addItem({
-      id: productVariantId, // ideal: usar la variante como id del item
+      id: productVariantId,
       productId: product.id,
-      productVariantId, // redundante si id=variantId, pero claro
+      productVariantId,
       name: product.name,
       price: product.price,
       image: imageSrc,
@@ -227,7 +221,6 @@ export const ProductDetail = ({ product, heroImage }: ProductDetailProps) => {
 
           <Separator className="h-[.5px] bg-slate-300" />
 
-          {/* Acordeón de atributos (solo si existen) */}
           <Accordion
             type="single"
             collapsible
@@ -246,7 +239,7 @@ export const ProductDetail = ({ product, heroImage }: ProductDetailProps) => {
               }
               onSelect={(v) => {
                 setSelectedColor(v);
-                setOpenAttr(""); // cerrar al seleccionar
+                setOpenAttr("");
               }}
             />
 
@@ -294,7 +287,6 @@ export const ProductDetail = ({ product, heroImage }: ProductDetailProps) => {
 
           <Separator className="h-[.5px] bg-slate-300" />
 
-          {/* Mini imagen (la dejo como estaba tu layout) */}
           <Image
             src={imageSrc}
             alt={`${product.name} Horse Brand`}
@@ -324,7 +316,6 @@ export const ProductDetail = ({ product, heroImage }: ProductDetailProps) => {
         </div>
       </div>
 
-      {/* Tu segundo bloque de acordeón (cuidado/detalles/regalo) queda igual */}
       <div className="bg-stone-100/90 shadow-sm p-6">
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="cuidado">

@@ -50,13 +50,20 @@ export function pickStableImages(productId: string, pool: string[], count = 4) {
 
 interface CategoryViewProps {
   categoryId: string;
+  /** opcional: si viene, filtra por subcategoría */
+  subcategoryId?: string;
 }
 
 const formatPriceARS = (value: number) =>
   value.toLocaleString("es-AR", { style: "currency", currency: "ARS" });
 
-export const CategoryView = ({ categoryId }: CategoryViewProps) => {
+export const CategoryView = ({
+  categoryId,
+  subcategoryId,
+}: CategoryViewProps) => {
   const trpc = useTRPC();
+
+  // 1) Traemos por categoría (como hoy)
   const { data } = useSuspenseQuery(
     trpc.products.getByCategoryId.queryOptions({
       categoryId,
@@ -65,15 +72,32 @@ export const CategoryView = ({ categoryId }: CategoryViewProps) => {
     })
   );
 
+  // 2) Filtramos en cliente si llega subcategoryId (sin romper tu API actual)
+  const filteredProducts = useMemo(() => {
+    const all = data.items ?? [];
+    if (!subcategoryId) return all;
+
+    // Ajustá el campo según tu modelo real:
+    // - subcategoryId
+    // - subCategoryId
+    // - subcategory?.id
+    // - subCategory?.id
+    return all.filter((p: any) => {
+      const direct = p.subcategoryId ?? p.subCategoryId;
+      const nested = p.subcategory?.id ?? p.subCategory?.id;
+      return (direct ?? nested) === subcategoryId;
+    });
+  }, [data.items, subcategoryId]);
+
   const items: GalleryItem[] = useMemo(() => {
-    return (data.items ?? []).map((p) => {
+    return filteredProducts.map((p: any) => {
       const imgs =
         p.images && p.images.length > 0
           ? p.images
           : pickStableImages(p.id, PRODUCT_PLACEHOLDER_IMAGES, 5);
 
       const base = imgs[0];
-      const hover = imgs.filter((src) => src !== base).slice(0, 4);
+      const hover = imgs.filter((src: string) => src !== base).slice(0, 4);
 
       return {
         id: p.id,
@@ -83,7 +107,7 @@ export const CategoryView = ({ categoryId }: CategoryViewProps) => {
         price: typeof p.price === "number" ? formatPriceARS(p.price) : p.price,
       };
     });
-  }, [data.items]);
+  }, [filteredProducts]);
 
   const isMobile = useIsMobile();
   const [openSidebar, setOpenSidebar] = useState(false);
@@ -105,6 +129,9 @@ export const CategoryView = ({ categoryId }: CategoryViewProps) => {
 
       {isMobile ? (
         <div className="min-h-screen bg-zinc-100 pt-14">
+          {/* TODO: acá todavía tenés galerías mockeadas.
+              Si querés que el filtro por subcategoría aplique también en mobile,
+              reemplazá estas secciones por tu data real (items / filteredProducts). */}
           <MobileCategoryImageGallery
             items={[
               { src: "/cat1.png", title: "Producto 1", price: "$100.000" },
