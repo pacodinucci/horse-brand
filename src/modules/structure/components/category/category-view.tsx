@@ -5,7 +5,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileNavbar } from "../navbar/mobile-navbar";
 import { MobileSidebar } from "../sidebar/mobile-sidebar";
 import { Navbar } from "../navbar/navbar";
-import { CategoryImageGallery, GalleryItem } from "./category-image-gallery";
+import {
+  CategoryImageGallery,
+  type GalleryItem,
+} from "./category-image-gallery";
 import { EditorialSection } from "./category-editorial-section";
 import { MobileCategoryImageGallery } from "./mobile-category-image-gallery";
 import { useTRPC } from "@/trpc/client";
@@ -57,47 +60,62 @@ interface CategoryViewProps {
 const formatPriceARS = (value: number) =>
   value.toLocaleString("es-AR", { style: "currency", currency: "ARS" });
 
+/**
+ * Tipo mínimo que necesitamos para evitar `any` sin acoplarnos a tu schema completo.
+ * Ajustá nombres si tu API usa otros.
+ */
+type SubcategoryRef = { id: string };
+
+type ProductForCategoryView = {
+  id: string;
+  name: string;
+  price: number | string;
+  images: string[];
+  subcategoryId?: string | null;
+  subCategoryId?: string | null;
+  subcategory?: SubcategoryRef | null;
+  subCategory?: SubcategoryRef | null;
+};
+
 export const CategoryView = ({
   categoryId,
   subcategoryId,
 }: CategoryViewProps) => {
   const trpc = useTRPC();
 
-  // 1) Traemos por categoría (como hoy)
+  // Tipamos el resultado sin `any`
   const { data } = useSuspenseQuery(
     trpc.products.getByCategoryId.queryOptions({
       categoryId,
       page: 1,
       pageSize: 100,
     })
-  );
+  ) as {
+    data: {
+      items: ProductForCategoryView[];
+    };
+  };
 
-  // 2) Filtramos en cliente si llega subcategoryId (sin romper tu API actual)
-  const filteredProducts = useMemo(() => {
+  const filteredProducts = useMemo<ProductForCategoryView[]>(() => {
     const all = data.items ?? [];
     if (!subcategoryId) return all;
 
-    // Ajustá el campo según tu modelo real:
-    // - subcategoryId
-    // - subCategoryId
-    // - subcategory?.id
-    // - subCategory?.id
-    return all.filter((p: any) => {
-      const direct = p.subcategoryId ?? p.subCategoryId;
-      const nested = p.subcategory?.id ?? p.subCategory?.id;
+    return all.filter((p) => {
+      const direct = p.subcategoryId ?? p.subCategoryId ?? undefined;
+      const nested = p.subcategory?.id ?? p.subCategory?.id ?? undefined;
       return (direct ?? nested) === subcategoryId;
     });
   }, [data.items, subcategoryId]);
 
-  const items: GalleryItem[] = useMemo(() => {
-    return filteredProducts.map((p: any) => {
+  const items = useMemo<GalleryItem[]>(() => {
+    return filteredProducts.map((p) => {
       const imgs =
         p.images && p.images.length > 0
           ? p.images
           : pickStableImages(p.id, PRODUCT_PLACEHOLDER_IMAGES, 5);
 
       const base = imgs[0];
-      const hover = imgs.filter((src: string) => src !== base).slice(0, 4);
+      const hover = imgs.filter((src) => src !== base).slice(0, 4);
 
       return {
         id: p.id,
@@ -129,9 +147,6 @@ export const CategoryView = ({
 
       {isMobile ? (
         <div className="min-h-screen bg-zinc-100 pt-14">
-          {/* TODO: acá todavía tenés galerías mockeadas.
-              Si querés que el filtro por subcategoría aplique también en mobile,
-              reemplazá estas secciones por tu data real (items / filteredProducts). */}
           <MobileCategoryImageGallery
             items={[
               { src: "/cat1.png", title: "Producto 1", price: "$100.000" },
