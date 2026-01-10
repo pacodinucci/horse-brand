@@ -13,6 +13,7 @@ import { EditorialSection } from "./category-editorial-section";
 import { MobileCategoryImageGallery } from "./mobile-category-image-gallery";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { CategoryBreadcrumb } from "./category-breadcrumb";
 
 export const PRODUCT_PLACEHOLDER_IMAGES = [
   "/cat1.png",
@@ -142,6 +143,10 @@ export const CategoryView = ({
       ) : (
         <div className="absolute top-0 left-0 w-full z-50">
           <Navbar />
+          <CategoryBreadcrumb
+            categoryId={categoryId}
+            subcategoryId={subcategoryId}
+          />
         </div>
       )}
 
