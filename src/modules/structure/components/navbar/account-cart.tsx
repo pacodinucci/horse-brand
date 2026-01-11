@@ -5,6 +5,8 @@ import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart";
 import { authClient } from "@/lib/auth-client";
+import { useTRPC } from "@/trpc/client";
+import { useQuery } from "@tanstack/react-query";
 
 import {
   DropdownMenu,
@@ -18,6 +20,16 @@ export function AccountCart() {
   const router = useRouter();
   const { data: session } = authClient.useSession();
 
+  const trpc = useTRPC();
+
+  const { data: me } = useQuery({
+    ...trpc.userRole.me.queryOptions(),
+    enabled: !!session,
+    staleTime: 60_000,
+  });
+
+  const isAdmin = me?.role === "ADMIN" || me?.role === "SUPERADMIN";
+
   const itemsCount = useCartStore((state) =>
     state.items.reduce((acc, item) => acc + item.quantity, 0)
   );
@@ -25,8 +37,8 @@ export function AccountCart() {
   const handleSignOut = async () => {
     try {
       await authClient.signOut();
-      router.refresh(); // asegura que se actualice UI/server components si aplica
-      router.push("/"); // opcional
+      router.refresh();
+      router.push("/");
     } catch (e) {
       console.error(e);
     }
@@ -54,6 +66,18 @@ export function AccountCart() {
             >
               Ir a mi Perfil
             </DropdownMenuItem>
+
+            {isAdmin && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => router.push("/backoffice")}
+                  className="cursor-pointer"
+                >
+                  Ir al Backoffice
+                </DropdownMenuItem>
+              </>
+            )}
 
             <DropdownMenuSeparator />
 
