@@ -4,14 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { PiMagnifyingGlassThin } from "react-icons/pi";
 import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
-
-type SearchResult = {
-  id: string;
-  type: "product" | "category" | "subcategory";
-  title: string;
-  subtitle?: string;
-  href: string;
-};
+// import {
+//   SearchResultsModal,
+//   type SearchResult,
+// } from "@/components/navbar/search-results-modal";
+import { SearchResultsModal, type SearchResult } from "./search-result-modal";
 
 function useDebouncedValue<T>(value: T, delay = 200) {
   const [debounced, setDebounced] = useState(value);
@@ -89,10 +86,13 @@ export const NavbarSearch = () => {
 
       <SearchResultsModal
         open={open}
+        onOpenChange={(next) => {
+          setOpen(next);
+          if (!next) inputRef.current?.blur();
+        }}
         query={query}
-        results={results}
+        results={results as SearchResult[]}
         isLoading={isFetching}
-        onClose={() => setOpen(false)}
         onClear={() => {
           setQuery("");
           setOpen(false);
@@ -102,130 +102,3 @@ export const NavbarSearch = () => {
     </div>
   );
 };
-
-function SearchResultsModal({
-  open,
-  query,
-  results,
-  isLoading,
-  onClose,
-  onClear,
-}: {
-  open: boolean;
-  query: string;
-  results: SearchResult[];
-  isLoading: boolean;
-  onClose: () => void;
-  onClear: () => void;
-}) {
-  if (!open) return null;
-
-  const q = query.trim();
-
-  return (
-    <div className="fixed inset-0 z-[9999]">
-      <button
-        aria-label="Cerrar búsqueda"
-        className="absolute inset-0 bg-black/35"
-        onClick={onClose}
-      />
-
-      <div className="absolute left-1/2 top-24 w-[min(720px,calc(100vw-24px))] -translate-x-1/2 rounded-2xl bg-white shadow-2xl ring-1 ring-black/10">
-        <div className="flex items-center justify-between gap-3 border-b border-neutral-200 px-4 py-3">
-          <div className="min-w-0">
-            <p className="text-xs text-neutral-500">Buscando</p>
-            <p className="truncate text-sm text-neutral-900">
-              {q.length ? (
-                <>
-                  “<span className="font-medium">{q}</span>”
-                </>
-              ) : (
-                <span className="text-neutral-500">—</span>
-              )}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="text-xs text-neutral-600 hover:text-neutral-900"
-              onClick={onClear}
-            >
-              Limpiar
-            </button>
-            <button
-              type="button"
-              className="text-xs text-neutral-600 hover:text-neutral-900"
-              onClick={onClose}
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-
-        <div className="max-h-[60vh] overflow-auto p-2">
-          {q.length === 0 ? (
-            <EmptyState />
-          ) : isLoading ? (
-            <div className="px-3 py-8 text-center">
-              <p className="text-sm text-neutral-700">Buscando...</p>
-              <p className="mt-1 text-xs text-neutral-500">
-                Consultando productos, categorías y subcategorías.
-              </p>
-            </div>
-          ) : results.length === 0 ? (
-            <div className="px-3 py-8 text-center">
-              <p className="text-sm text-neutral-700">Sin resultados</p>
-              <p className="mt-1 text-xs text-neutral-500">
-                Probá con otro término.
-              </p>
-            </div>
-          ) : (
-            <ul className="space-y-1">
-              {results.map((r) => (
-                <li key={r.id}>
-                  <a
-                    href={r.href}
-                    className="flex items-start justify-between gap-3 rounded-xl px-3 py-3 hover:bg-neutral-50"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm text-neutral-900">
-                        {r.title}
-                      </p>
-                      {r.subtitle ? (
-                        <p className="truncate text-xs text-neutral-500">
-                          {r.subtitle}
-                        </p>
-                      ) : null}
-                    </div>
-
-                    <span className="shrink-0 rounded-full border border-neutral-200 px-2 py-1 text-[10px] uppercase tracking-wide text-neutral-600">
-                      {r.type === "product"
-                        ? "Producto"
-                        : r.type === "category"
-                        ? "Categoría"
-                        : "Subcategoría"}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="border-t border-neutral-200 px-4 py-3">
-          <p className="text-xs text-neutral-500">Esc para cerrar.</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="px-3 py-8 text-center">
-      <p className="text-sm text-neutral-700">Escribí para buscar</p>
-      <p className="mt-1 text-xs text-neutral-500">Productos o categorías.</p>
-    </div>
-  );
-}
