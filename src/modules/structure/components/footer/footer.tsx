@@ -1,13 +1,12 @@
 // components/layout/Footer.tsx
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-// lucide-react
 import {
   PiInstagramLogoLight as Instagram,
   PiFacebookLogoLight as Facebook,
@@ -67,69 +66,91 @@ export function Footer({
 }) {
   const [email, setEmail] = useState("");
 
+  // valores de todos los items (los mismos que usás en value={`item-${i}`})
+  const allValues = useMemo(() => MENUS.map((_, i) => `item-${i}`), []);
+
+  // controlamos el accordion
+  const [openValues, setOpenValues] = useState<string[]>([]);
+
+  // helper: abrir/cerrar todo
+  // const openAll = () => setOpenValues(allValues);
+  // const closeAll = () => setOpenValues([]);
+
+  // const isAllOpen = openValues.length === allValues.length;
+
   return (
     <footer className="w-full bg-white text-neutral-900">
-      {/* Menús superiores */}
       <div className="w-full px-4 py-6">
         <Accordion
           type="multiple"
-          // className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-24"
           className="grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-24"
+          value={openValues}
+          onValueChange={(next) => {
+            setOpenValues((prev) => {
+              const prevAllOpen = prev.length === allValues.length;
+
+              if (prevAllOpen) return [];
+
+              if (next.length === 0) return [];
+              return allValues;
+            });
+          }}
         >
-          {MENUS.map((m, i) => (
-            <AccordionItem
-              key={m.title}
-              value={`item-${i}`}
-              className="border-none"
-            >
-              {/* Título clickeable */}
-              {/* <AccordionTrigger className="no-underline hover:no-underline py-0 cursor-pointer">
-                <h3 className="text-base tracking-[0.18em] uppercase flex items-center justify-between gap-2">
-                  {m.title} <span className="text-[13px]">+</span>
-                </h3>
-              </AccordionTrigger> */}
+          {MENUS.map((m, i) => {
+            const itemValue = `item-${i}`;
+            const isOpen = openValues.includes(itemValue);
 
-              <AccordionTrigger className="no-underline hover:no-underline py-0 cursor-pointer w-full group">
-                <h3
-                  className="
-                    text-base tracking-[0.18em] uppercase flex items-center gap-2 
-                    justify-between md:justify-start w-full
-                  "
-                >
-                  {m.title}
-
-                  <span
-                    className="text-[13px] ml-auto md:ml-2 group-data-[state=open]:hidden"
-                    aria-hidden="true"
+            return (
+              <AccordionItem
+                key={m.title}
+                value={itemValue}
+                className="border-none"
+              >
+                <AccordionTrigger className="no-underline hover:no-underline py-0 cursor-pointer w-full group">
+                  <h3
+                    className="
+                      text-base tracking-[0.18em] uppercase flex items-center gap-2 
+                      justify-between md:justify-start w-full
+                    "
                   >
-                    <PiPlus />
-                  </span>
+                    {m.title}
 
-                  <span
-                    className="text-[13px] ml-auto md:ml-2 hidden group-data-[state=open]:inline"
-                    aria-hidden="true"
-                  >
-                    <PiMinus />
-                  </span>
-                </h3>
-              </AccordionTrigger>
-
-              {/* Contenido con transición de altura */}
-              <AccordionContent className="mt-3 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
-                <nav className="space-y-2">
-                  {m.links.map((l) => (
-                    <Link
-                      key={l.label}
-                      href={l.href}
-                      className="block text-[12px] text-neutral-700 hover:text-neutral-900"
+                    <span
+                      className={`text-[13px] ml-auto md:ml-2 ${
+                        isOpen ? "hidden" : "inline"
+                      }`}
+                      aria-hidden="true"
                     >
-                      {l.label}
-                    </Link>
-                  ))}
-                </nav>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
+                      <PiPlus />
+                    </span>
+
+                    <span
+                      className={`text-[13px] ml-auto md:ml-2 ${
+                        isOpen ? "inline" : "hidden"
+                      }`}
+                      aria-hidden="true"
+                    >
+                      <PiMinus />
+                    </span>
+                  </h3>
+                </AccordionTrigger>
+
+                <AccordionContent className="mt-3 data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+                  <nav className="space-y-2">
+                    {m.links.map((l) => (
+                      <Link
+                        key={l.label}
+                        href={l.href}
+                        className="block text-[12px] text-neutral-700 hover:text-neutral-900"
+                      >
+                        {l.label}
+                      </Link>
+                    ))}
+                  </nav>
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
         </Accordion>
       </div>
 
@@ -160,7 +181,7 @@ export function Footer({
           </div>
         </div>
 
-        {/* Newsletter (centrado) */}
+        {/* Newsletter */}
         <div className="flex flex-col items-center text-center">
           <h4 className="text-xs tracking-[0.18em] uppercase">Newsletter</h4>
           <p className="mt-2 max-w-sm text-[12px] text-neutral-700">
@@ -171,7 +192,6 @@ export function Footer({
             className="mt-4 flex items-center gap-2 w-full max-w-sm"
             onSubmit={(e) => {
               e.preventDefault();
-              // TODO: enviar
             }}
           >
             <Input
@@ -192,7 +212,7 @@ export function Footer({
           </form>
         </div>
 
-        {/* Síguenos (derecha) */}
+        {/* Síguenos */}
         <div className="md:text-right">
           <h4 className="text-xs tracking-[0.18em] uppercase">Seguínos</h4>
           <div className="mt-3 flex md:justify-end gap-5">
