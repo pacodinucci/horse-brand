@@ -3,10 +3,6 @@ import { OrderRow } from "../../types";
 
 export const columns: ColumnDef<OrderRow>[] = [
   {
-    accessorKey: "id",
-    header: "N° Orden",
-  },
-  {
     id: "customer",
     header: "Cliente",
     accessorFn: (row) => row.Customer?.name ?? "—",
@@ -28,5 +24,9 @@ export const columns: ColumnDef<OrderRow>[] = [
     id: "items",
     header: "Items",
     accessorFn: (row) => row.items.length,
+  },
+  {
+    accessorKey: "id",
+    header: "N° Orden",
   },
 ];

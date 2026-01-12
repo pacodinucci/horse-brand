@@ -375,4 +375,20 @@ export const ordersRouter = createTRPCRouter({
         total: order.total,
       };
     }),
+
+  getPaidNotDelivered: baseProcedure.query(async () => {
+    return db.order.findMany({
+      where: {
+        paymentStatus: "PAID",
+        delivered: false,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+      include: {
+        Customer: true,
+        items: true,
+      },
+    });
+  }),
 });

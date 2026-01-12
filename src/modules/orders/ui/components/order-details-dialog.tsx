@@ -4,10 +4,10 @@ import Image from "next/image";
 import { useTRPC } from "@/trpc/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ResponsiveDialog } from "@/components/responsive-dialog";
-import { LoadingState } from "@/components/loading-state";
 import { ErrorState } from "@/components/error-state";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function formatARS(centsOrPesos: number) {
   return new Intl.NumberFormat("es-AR", {
@@ -86,11 +86,10 @@ export function OrderDetailsDialog({ orderId, open, onOpenChange }: Props) {
       onOpenChange={onOpenChange}
     >
       {orderQuery.isLoading ? (
-        <div className="py-2">
-          <LoadingState
-            title="Cargando orden"
-            description="Cargando items y totales..."
-          />
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-4 w-3/4" />
         </div>
       ) : orderQuery.isError ? (
         <div className="py-2">

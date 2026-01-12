@@ -1,5 +1,7 @@
+import { BackofficeView } from "@/modules/backoffice/views/backoffice-view";
+
 const BackofficePage = () => {
-  return <div>Backoffice page!</div>;
+  return <BackofficeView />;
 };
 
 export default BackofficePage;
