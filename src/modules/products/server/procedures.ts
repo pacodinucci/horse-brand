@@ -425,4 +425,62 @@ export const productsRouter = createTRPCRouter({
         totalPages: Math.ceil(total / pageSize),
       };
     }),
+
+  getRelated: baseProcedure
+    .input(
+      z.object({
+        productId: z.string(),
+        categoryId: z.string(),
+        subCategoryId: z.string(),
+        take: z.number().min(1).max(20).default(5),
+      })
+    )
+    .query(async ({ input }) => {
+      const { productId, categoryId, subCategoryId, take } = input;
+
+      // 1) misma subcategoría
+      const bySub = await db.product.findMany({
+        where: {
+          id: { not: productId },
+          subCategoryId,
+          // isActive: true,
+        },
+        orderBy: { createdAt: "desc" }, // o lo que prefieras
+        take,
+        select: {
+          id: true,
+          name: true,
+          price: true,
+          images: true,
+          categoryId: true,
+          subCategoryId: true,
+        },
+      });
+
+      if (bySub.length >= take) return bySub;
+
+      const remaining = take - bySub.length;
+      const alreadyIds = bySub.map((p) => p.id);
+
+      // 2) completar con misma categoría
+      const byCat = await db.product.findMany({
+        where: {
+          id: { notIn: [productId, ...alreadyIds] },
+          categoryId,
+          // isActive: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: remaining,
+        select: {
+          id: true,
+          name: true,
+          price: true,
+          images: true,
+          categoryId: true,
+          subCategoryId: true,
+        },
+      });
+
+      return [...bySub, ...byCat];
+    }),
 });

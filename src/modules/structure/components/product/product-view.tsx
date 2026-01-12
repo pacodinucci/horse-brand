@@ -7,6 +7,7 @@ import { ProductImagesStrip } from "./product-image-strip";
 import { ProductDetail } from "./product-detail";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { RelatedProducts } from "./related-products";
 
 const PRODUCT_PLACEHOLDER_IMAGES = [
   "/cat1.png",
@@ -96,12 +97,11 @@ export default function ProductView({ productId }: ProductViewProps) {
                 Productos Relacionados
               </h1>
 
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-40 rounded-[2rem] bg-gradient-to-br from-slate-400 via-neutral-500 to-zinc-900"
-                />
-              ))}
+              <RelatedProducts
+                productId={product.id}
+                categoryId={product.categoryId}
+                subCategoryId={product.subCategoryId}
+              />
             </section>
 
             <aside
