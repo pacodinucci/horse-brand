@@ -104,7 +104,7 @@ export function SalesCountChart() {
             <Bar
               dataKey="sales"
               radius={6}
-              fill="var(--var-gold)"
+              fill="var(--var-teal)"
               barSize={60}
             />
           </BarChart>

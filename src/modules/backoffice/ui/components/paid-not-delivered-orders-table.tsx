@@ -15,12 +15,14 @@ export const PaidNotDeliveredOrdersTable = ({
   onSelectOrder,
 }: Props) => {
   return (
-    <div className="overflow-hidden space-y-3">
-      <h1 className="text-xl">Ventas confirmadas con entrega pendiente</h1>
+    <div className="overflow-hidden space-y-3 border rounded-md bg-white p-4 shadow-sm">
+      <h1 className="text-base font-bold">
+        Ventas confirmadas con entrega pendiente
+      </h1>
 
       <div className="border rounded-md overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-[var(--var-teal)]/30">
+          <thead className="bg-[var(--var-sand)]/60">
             <tr>
               <th className="p-3 text-left">Orden</th>
               <th className="p-3 text-left">Cliente</th>
@@ -38,8 +40,8 @@ export const PaidNotDeliveredOrdersTable = ({
                 className="
                     border-t
                     cursor-pointer
-                    odd:bg-background
-                    even:bg-[var(--var-teal)]/10
+                    odd:bg-[var(--var-sand)]/20
+                    even:bg-[var(--var-sand)]/10
                     hover:bg--muted
                     focus:outline-none
                     focus:ring-2
