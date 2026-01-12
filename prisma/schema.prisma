@@ -104,17 +104,19 @@ model Customer {
 }
 
 model Order {
-  id                String        @id @default(uuid())
-  customerId        String
-  total             Int
-  paymentMethod     PaymentMethod @default(MERCADO_PAGO)
-  paymentStatus     PaymentStatus @default(PENDING)
-  externalReference String?
-  createdAt         DateTime      @default(now())
-  delivered         Boolean       @default(false)
-  deliveredAt       DateTime?     @db.Timestamptz(6)
-  Customer          Customer      @relation(fields: [customerId], references: [id])
-  items             OrderItem[]
+  id                    String        @id @default(uuid())
+  customerId            String
+  total                 Int
+  paymentMethod         PaymentMethod @default(MERCADO_PAGO)
+  paymentStatus         PaymentStatus @default(PENDING)
+  externalReference     String?
+  createdAt             DateTime      @default(now())
+  delivered             Boolean       @default(false)
+  deliveredAt           DateTime?     @db.Timestamptz(6)
+  transferReceiptNumber String?
+  paidAt                DateTime?
+  Customer              Customer      @relation(fields: [customerId], references: [id])
+  items                 OrderItem[]
 }
 
 model OrderItem {

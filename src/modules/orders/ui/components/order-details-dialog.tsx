@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import Image from "next/image";
 import { useTRPC } from "@/trpc/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,6 +7,7 @@ import { ResponsiveDialog } from "@/components/responsive-dialog";
 import { LoadingState } from "@/components/loading-state";
 import { ErrorState } from "@/components/error-state";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
 function formatARS(centsOrPesos: number) {
   return new Intl.NumberFormat("es-AR", {
@@ -27,6 +27,8 @@ export function OrderDetailsDialog({ orderId, open, onOpenChange }: Props) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
+  const [receiptNumber, setReceiptNumber] = useState("");
+
   const getManyOptions = trpc.orders.getMany.queryOptions({});
   const getOneOptions = (id: string) => trpc.orders.getOne.queryOptions({ id });
 
@@ -37,6 +39,11 @@ export function OrderDetailsDialog({ orderId, open, onOpenChange }: Props) {
 
   const order = orderQuery.data;
 
+  useEffect(() => {
+    if (!order) return;
+    setReceiptNumber(order.transferReceiptNumber ?? "");
+  }, [order?.id, order?.transferReceiptNumber, order]);
+
   const setDeliveredStatusMutation = useMutation(
     trpc.orders.setDeliveredStatus.mutationOptions({
       onSuccess: async () => {
@@ -46,6 +53,22 @@ export function OrderDetailsDialog({ orderId, open, onOpenChange }: Props) {
         });
 
         // refresca detalle (si sigue abierto)
+        if (orderId) {
+          await queryClient.invalidateQueries({
+            queryKey: getOneOptions(orderId).queryKey,
+          });
+        }
+      },
+    })
+  );
+
+  const setBankTransferPaymentMutation = useMutation(
+    trpc.orders.setBankTransferPayment.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: getManyOptions.queryKey,
+        });
+
         if (orderId) {
           await queryClient.invalidateQueries({
             queryKey: getOneOptions(orderId).queryKey,
@@ -92,11 +115,96 @@ export function OrderDetailsDialog({ orderId, open, onOpenChange }: Props) {
               <div className="font-medium">{formatARS(order.total)}</div>
             </div>
 
-            <div className="rounded-md border p-3">
+            <div className="rounded-md border p-3 flex flex-col gap-2">
               <div className="text-muted-foreground">Pago</div>
+
               <div className="font-medium">
                 {order.paymentMethod} — {order.paymentStatus}
               </div>
+
+              {/* Solo para transferencias */}
+              {order.paymentMethod === "BANK_TRANSFER" ? (
+                <>
+                  <span
+                    className={`text-sm font-medium ${
+                      order.paymentStatus === "PAID"
+                        ? "text-green-700"
+                        : "text-red-700"
+                    }`}
+                  >
+                    {order.paymentStatus === "PAID" ? "Pagada" : "No pagada"}
+                  </span>
+
+                  {order.paymentStatus === "PAID" ? (
+                    <>
+                      <div className="text-xs text-muted-foreground">
+                        Comprobante:{" "}
+                        <span className="font-medium text-foreground">
+                          {order.transferReceiptNumber ?? "—"}
+                        </span>
+                      </div>
+
+                      {order.paidAt ? (
+                        <div className="text-xs text-muted-foreground">
+                          Pagada:{" "}
+                          {new Date(order.paidAt).toLocaleString("es-AR")}
+                        </div>
+                      ) : null}
+
+                      <Button
+                        className="mt-2"
+                        variant="secondary"
+                        size="sm"
+                        disabled={setBankTransferPaymentMutation.isPending}
+                        onClick={() =>
+                          setBankTransferPaymentMutation.mutate({
+                            id: order.id,
+                            paid: false,
+                          })
+                        }
+                      >
+                        {setBankTransferPaymentMutation.isPending
+                          ? "Actualizando..."
+                          : "Marcar como NO pagada"}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-xs text-muted-foreground">
+                        Número de comprobante
+                      </div>
+
+                      <input
+                        className="h-9 rounded-md border bg-background px-3 text-sm outline-none"
+                        value={receiptNumber}
+                        onChange={(e) => setReceiptNumber(e.target.value)}
+                        placeholder="Ej: 00012345 / ref. bancaria"
+                      />
+
+                      <Button
+                        className="mt-2"
+                        variant="secondary"
+                        size="sm"
+                        disabled={
+                          setBankTransferPaymentMutation.isPending ||
+                          receiptNumber.trim().length === 0
+                        }
+                        onClick={() =>
+                          setBankTransferPaymentMutation.mutate({
+                            id: order.id,
+                            paid: true,
+                            receiptNumber: receiptNumber.trim(),
+                          })
+                        }
+                      >
+                        {setBankTransferPaymentMutation.isPending
+                          ? "Actualizando..."
+                          : "Marcar como pagada"}
+                      </Button>
+                    </>
+                  )}
+                </>
+              ) : null}
             </div>
 
             <div className="rounded-md border p-3 flex flex-col gap-2">

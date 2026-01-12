@@ -5,7 +5,7 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const INTERNAL_SALES_EMAIL = process.env.INTERNAL_SALES_EMAIL!;
-const RESEND_FROM = process.env.RESEND_FROM!; // ej: "Tienda <ventas@tudominio.com>"
+const RESEND_FROM = process.env.RESEND_FROM!;
 
 export async function POST(req: Request) {
   try {
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     // 3) Estados
     if (payment.status === "approved") {
       // ✅ Idempotencia: si ya se procesó, no repetir (ni stock ni emails)
-      if (order.status === "PAID") {
+      if (order.paymentStatus === "PAID") {
         return NextResponse.json({ received: true });
       }
 
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
       await db.$transaction(async (tx) => {
         await tx.order.update({
           where: { id: orderId },
-          data: { status: "PAID" },
+          data: { paymentStatus: "PAID" },
         });
 
         for (const item of order.items) {
@@ -103,10 +103,10 @@ export async function POST(req: Request) {
     }
 
     if (payment.status === "rejected") {
-      if (order.status !== "CANCELLED") {
+      if (order.paymentStatus !== "CANCELLED") {
         await db.order.update({
           where: { id: orderId },
-          data: { status: "CANCELLED" },
+          data: { paymentStatus: "CANCELLED" },
         });
       }
       return NextResponse.json({ received: true });

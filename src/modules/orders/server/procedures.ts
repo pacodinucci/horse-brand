@@ -238,4 +238,141 @@ export const ordersRouter = createTRPCRouter({
         },
       });
     }),
+
+  setPaymentStatus: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        paymentStatus: z.enum(["PENDING", "PAID", "FAILED", "CANCELLED"]),
+      })
+    )
+    .mutation(async ({ input }) => {
+      // Validación opcional (recomendada): solo permitir toggle manual si es transferencia
+      const existing = await db.order.findUnique({
+        where: { id: input.id },
+        select: { paymentMethod: true },
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Orden no encontrada.",
+        });
+      }
+
+      if (existing.paymentMethod !== "BANK_TRANSFER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "Solo se puede modificar el estado de pago manualmente en transferencias.",
+        });
+      }
+
+      return db.order.update({
+        where: { id: input.id },
+        data: {
+          paymentStatus: input.paymentStatus,
+        },
+        include: {
+          Customer: true,
+          items: {
+            include: {
+              productVariant: {
+                include: { product: true },
+              },
+            },
+          },
+        },
+      });
+    }),
+
+  setBankTransferPayment: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        // si paid=true => exige receiptNumber
+        paid: z.boolean(),
+        receiptNumber: z.string().trim().min(1).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const order = await db.order.findUnique({
+        where: { id: input.id },
+        select: { id: true, paymentMethod: true },
+      });
+
+      if (!order) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Orden no encontrada.",
+        });
+      }
+
+      if (order.paymentMethod !== "BANK_TRANSFER") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Esta acción solo aplica a pagos por transferencia.",
+        });
+      }
+
+      if (input.paid) {
+        if (!input.receiptNumber) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              "Ingresá el número de comprobante para marcar como pagada.",
+          });
+        }
+
+        return db.order.update({
+          where: { id: input.id },
+          data: {
+            paymentStatus: "PAID",
+            transferReceiptNumber: input.receiptNumber,
+            paidAt: new Date(),
+          },
+          include: {
+            Customer: true,
+            items: {
+              include: { productVariant: { include: { product: true } } },
+            },
+          },
+        });
+      }
+
+      return db.order.update({
+        where: { id: input.id },
+        data: {
+          paymentStatus: "PENDING",
+          transferReceiptNumber: null,
+          paidAt: null,
+        },
+        include: {
+          Customer: true,
+          items: {
+            include: { productVariant: { include: { product: true } } },
+          },
+        },
+      });
+    }),
+
+  verifyPayment: baseProcedure
+    .input(z.object({ orderId: z.string().min(1) }))
+    .query(async ({ input }) => {
+      const order = await db.order.findUnique({
+        where: { id: input.orderId },
+        select: { id: true, paymentStatus: true, total: true },
+      });
+
+      if (!order) {
+        return { ok: false as const, reason: "NOT_FOUND" as const };
+      }
+
+      return {
+        ok: true as const,
+        orderId: order.id,
+        paymentStatus: order.paymentStatus,
+        total: order.total,
+      };
+    }),
 });
