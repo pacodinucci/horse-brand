@@ -1,7 +1,10 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { CustomerGetOne } from "../../types";
+// import { CustomerGetOne } from "../../types";
+import type { RouterOutputs } from "@/trpc/client";
 
-export const columns: ColumnDef<CustomerGetOne>[] = [
+type CustomerRow = RouterOutputs["customers"]["getMany"]["items"][number];
+
+export const columns: ColumnDef<CustomerRow>[] = [
   {
     accessorKey: "name",
     header: "Nombre",

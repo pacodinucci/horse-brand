@@ -25,19 +25,6 @@ export const customersRouter = createTRPCRouter({
 
       return customer;
     }),
-  // create: baseProcedure
-  //   .input(customerInsertSchema)
-  //   .mutation(async ({ input }) => {
-  //     const customer = await db.customer.create({
-  //       data: {
-  //         name: input.name,
-  //         email: input.email,
-  //         phone: input.phone,
-  //         address: input.address,
-  //       },
-  //     });
-  //     return customer;
-  //   }),
   create: baseProcedure
     .input(customerInsertSchema)
     .mutation(async ({ input }) => {
@@ -123,19 +110,29 @@ export const customersRouter = createTRPCRouter({
       ]);
       return { items, total, totalPages: Math.ceil(total / pageSize) };
     }),
-  getOne: protectedProcedure
+  getOne: baseProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       const customer = await db.customer.findUnique({
         where: { id: input.id },
+        include: {
+          orders: {
+            orderBy: { createdAt: "desc" },
+            include: {
+              items: {
+                include: {
+                  productVariant: {
+                    include: {
+                      product: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
 
-      if (!customer) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Cliente no encontrado.",
-        });
-      }
       return customer;
     }),
   update: protectedProcedure

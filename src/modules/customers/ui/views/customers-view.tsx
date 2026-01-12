@@ -7,21 +7,39 @@ import { useState } from "react";
 import { columns } from "../components/columns";
 import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { CustomerDetailsDialog } from "../components/customer-details-dialog";
+import type { RouterOutputs } from "@/trpc/client";
+
+type CustomerRow = RouterOutputs["customers"]["getMany"]["items"][number];
 
 export const CustomersView = () => {
-  const [, setSelectedCustomer] = useState("");
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(
+    null
+  );
 
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(trpc.customers.getMany.queryOptions({}));
 
+  const open = !!selectedCustomerId;
+
   return (
     <div className="flex-1 pb-4 px-4 md:px-8 flex flex-col gap-y-4">
-      <DataTable
+      <DataTable<CustomerRow, unknown>
         data={data.items}
         columns={columns}
-        onRowClick={(row) => setSelectedCustomer(row.id)}
+        onRowClick={(row) => {
+          if (!row) return;
+          setSelectedCustomerId(row.id);
+        }}
       />
-      {/* <DataPagination /> */}
+
+      <CustomerDetailsDialog
+        customerId={selectedCustomerId}
+        open={open}
+        onOpenChange={(next) => {
+          if (!next) setSelectedCustomerId(null);
+        }}
+      />
     </div>
   );
 };
